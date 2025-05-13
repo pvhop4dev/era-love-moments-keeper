@@ -10,6 +10,7 @@ import PhotoModal, { PhotoData } from "@/components/photos/PhotoModal";
 import PhotoAlbum from "@/components/albums/PhotoAlbum";
 import SettingsModal from "@/components/settings/SettingsModal";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card"; // Added missing Card import
 import { Settings, Image as ImageIcon, Calendar as CalendarIcon } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
