@@ -3,13 +3,16 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Heart } from "lucide-react";
+import { EventData } from "@/components/events/EventModal";
+import { PhotoData } from "@/components/photos/PhotoModal";
 
 interface CalendarProps {
   onDateClick: (date: Date) => void;
   events: { date: string; title: string }[];
+  selectedDate: Date | null;
 }
 
-const Calendar = ({ onDateClick, events }: CalendarProps) => {
+const Calendar = ({ onDateClick, events, selectedDate }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState<Date[]>([]);
 
@@ -78,6 +81,14 @@ const Calendar = ({ onDateClick, events }: CalendarProps) => {
            date.getFullYear() === today.getFullYear();
   };
 
+  const isSelectedDate = (date: Date) => {
+    if (!selectedDate) return false;
+    
+    return date.getDate() === selectedDate.getDate() && 
+           date.getMonth() === selectedDate.getMonth() && 
+           date.getFullYear() === selectedDate.getFullYear();
+  };
+
   return (
     <Card className="love-card h-full">
       <CardHeader className="pb-2">
@@ -109,7 +120,7 @@ const Calendar = ({ onDateClick, events }: CalendarProps) => {
               onClick={() => onDateClick(day)}
               className={`calendar-day ${isCurrentMonth(day) ? '' : 'text-muted-foreground opacity-40'} ${
                 isToday(day) ? 'calendar-day-current' : ''
-              } relative`}
+              } ${isSelectedDate(day) ? 'calendar-day-selected' : ''} relative`}
             >
               {day.getDate()}
               {hasEvent(day) && (

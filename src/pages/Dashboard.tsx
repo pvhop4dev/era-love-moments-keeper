@@ -4,6 +4,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import LoveCounter from "@/components/dashboard/LoveCounter";
 import FengShuiInfo from "@/components/dashboard/FengShuiInfo";
 import Calendar from "@/components/calendar/Calendar";
+import DayDetailsSidebar from "@/components/calendar/DayDetailsSidebar";
 import EventModal, { EventData } from "@/components/events/EventModal";
 import PhotoModal, { PhotoData } from "@/components/photos/PhotoModal";
 import PhotoAlbum from "@/components/albums/PhotoAlbum";
@@ -120,21 +121,14 @@ const Dashboard = () => {
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
-    
-    // Check if there's an event on this date
-    const dateStr = date.toISOString().split("T")[0];
-    const eventOnDate = events.find(event => event.date === dateStr);
-    
-    if (eventOnDate) {
-      setSelectedEvent(eventOnDate);
-    } else {
-      setSelectedEvent(undefined);
-    }
-    
+  };
+
+  const handleAddEvent = () => {
+    setSelectedEvent(undefined);
     setIsEventModalOpen(true);
   };
 
-  const handleAddPhotoClick = () => {
+  const handleAddPhoto = () => {
     setSelectedPhoto(undefined);
     setIsPhotoModalOpen(true);
   };
@@ -178,6 +172,11 @@ const Dashboard = () => {
     setIsPhotoModalOpen(true);
   };
 
+  const handleSelectEvent = (event: EventData) => {
+    setSelectedEvent(event);
+    setIsEventModalOpen(true);
+  };
+
   const openSettings = () => {
     setIsSettingsOpen(true);
   };
@@ -192,6 +191,19 @@ const Dashboard = () => {
       date: date as string,
       title: ""
     }));
+  };
+
+  // Filter events and photos for the selected date
+  const getEventsForSelectedDate = () => {
+    if (!selectedDate) return [];
+    const dateStr = selectedDate.toISOString().split("T")[0];
+    return events.filter(event => event.date === dateStr);
+  };
+
+  const getPhotosForSelectedDate = () => {
+    if (!selectedDate) return [];
+    const dateStr = selectedDate.toISOString().split("T")[0];
+    return photos.filter(photo => photo.date === dateStr);
   };
 
   return (
@@ -217,69 +229,52 @@ const Dashboard = () => {
           <FengShuiInfo />
         </div>
         
-        {/* Second Row */}
-        <div className="md:col-span-2">
-          <Calendar 
-            onDateClick={handleDateClick} 
-            events={getDaysWithContent()}
-          />
-          
-          {/* Event List */}
-          <div className="mt-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold text-xl flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5 text-love-500" />
-                {t('yourSpecialMoments')}
-              </h2>
+        {/* Second Row - Calendar and Day Details */}
+        <div className="md:col-span-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Calendar */}
+            <div className="md:col-span-2">
+              <Calendar 
+                onDateClick={handleDateClick} 
+                events={getDaysWithContent()}
+                selectedDate={selectedDate}
+              />
+              
+              {/* Recent Photos Album */}
+              <div className="mt-6">
+                <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
+                  <ImageIcon className="h-5 w-5 text-love-500" />
+                  {t('recentPhotos')}
+                </h2>
+                <PhotoAlbum 
+                  photos={photos.slice(0, 4)}
+                  onSelectPhoto={handleSelectPhoto}
+                />
+              </div>
             </div>
             
-            {events.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {events.map((event) => (
-                  <div 
-                    key={event.id}
-                    className="p-4 rounded-lg cursor-pointer transition-all hover:shadow-md border border-gray-200 bg-white"
-                    onClick={() => {
-                      setSelectedEvent(event);
-                      setSelectedDate(new Date(event.date));
-                      setIsEventModalOpen(true);
-                    }}
-                  >
-                    <h3 className="font-medium">{event.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(event.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </p>
-                    <p className="text-xs mt-1 truncate">{event.location}</p>
-                    <p className="text-xs mt-1 line-clamp-2 text-muted-foreground">{event.description}</p>
+            {/* Day Details Sidebar */}
+            <div className="md:col-span-1">
+              {selectedDate ? (
+                <DayDetailsSidebar
+                  selectedDate={selectedDate}
+                  eventsForDay={getEventsForSelectedDate()}
+                  photosForDay={getPhotosForSelectedDate()}
+                  onAddEvent={handleAddEvent}
+                  onAddPhoto={handleAddPhoto}
+                  onSelectEvent={handleSelectEvent}
+                  onSelectPhoto={handleSelectPhoto}
+                />
+              ) : (
+                <Card className="h-full flex items-center justify-center p-6">
+                  <div className="text-center text-muted-foreground">
+                    <CalendarIcon className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                    <p>{t('selectDayToSeeDetails')}</p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">
-                {t('noEvents')}
-              </p>
-            )}
+                </Card>
+              )}
+            </div>
           </div>
-        </div>
-        
-        {/* Photo Album Section */}
-        <div className="flex flex-col gap-4">
-          <Button 
-            onClick={handleAddPhotoClick}
-            className="love-button w-full flex items-center gap-2"
-          >
-            <ImageIcon className="h-4 w-4" />
-            {t('addPhoto')}
-          </Button>
-          
-          <PhotoAlbum 
-            photos={photos}
-            onSelectPhoto={handleSelectPhoto}
-          />
         </div>
       </div>
 
