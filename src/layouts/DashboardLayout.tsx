@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ interface UserData {
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const { t } = useLanguage();
   const [userData, setUserData] = useState<UserData | null>(null);
   const navigate = useNavigate();
   
@@ -37,6 +39,22 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       console.error("Error parsing user data:", error);
       toast.error("Error loading your profile");
       navigate("/");
+    }
+    
+    // Check for custom background
+    const storedSettings = localStorage.getItem("eralove-settings");
+    if (storedSettings) {
+      try {
+        const { backgroundImage } = JSON.parse(storedSettings);
+        if (backgroundImage) {
+          document.body.style.backgroundImage = `url(${backgroundImage})`;
+          document.body.style.backgroundSize = "cover";
+          document.body.style.backgroundPosition = "center";
+          document.body.style.backgroundAttachment = "fixed";
+        }
+      } catch (error) {
+        console.error("Error loading background settings:", error);
+      }
     }
   }, [navigate]);
 
@@ -64,7 +82,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           
           <div className="hidden md:flex items-center gap-4 text-white">
             <div className="text-right">
-              <p className="text-sm opacity-80">Welcome back</p>
+              <p className="text-sm opacity-80">{t('welcome')}</p>
               <p className="font-medium">
                 {userData.name} & {userData.partnerName}
               </p>
@@ -75,7 +93,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              {t('logout')}
             </Button>
           </div>
           

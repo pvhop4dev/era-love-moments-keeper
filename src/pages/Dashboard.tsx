@@ -6,8 +6,13 @@ import FengShuiInfo from "@/components/dashboard/FengShuiInfo";
 import Calendar from "@/components/calendar/Calendar";
 import EventModal, { EventData } from "@/components/events/EventModal";
 import PhotoAlbum from "@/components/albums/PhotoAlbum";
+import SettingsModal from "@/components/settings/SettingsModal";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Dashboard = () => {
+  const { t } = useLanguage();
   const [userData, setUserData] = useState({
     name: "",
     partnerName: "",
@@ -16,6 +21,7 @@ const Dashboard = () => {
   
   const [events, setEvents] = useState<EventData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventData | undefined>(undefined);
   const [selectedEventForAlbum, setSelectedEventForAlbum] = useState<EventData | null>(null);
@@ -124,8 +130,24 @@ const Dashboard = () => {
     setSelectedEventForAlbum(event);
   };
 
+  const openSettings = () => {
+    setIsSettingsOpen(true);
+  };
+
   return (
     <DashboardLayout>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">{t('welcome')}</h1>
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2" 
+          onClick={openSettings}
+        >
+          <Settings className="h-4 w-4" />
+          {t('settings')}
+        </Button>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* First Row */}
         <div className="md:col-span-2">
@@ -144,7 +166,7 @@ const Dashboard = () => {
           
           {/* Event List */}
           <div className="mt-6">
-            <h2 className="font-semibold text-xl mb-4">Your Special Moments</h2>
+            <h2 className="font-semibold text-xl mb-4">{t('yourSpecialMoments')}</h2>
             
             {events.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -194,7 +216,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <p className="text-muted-foreground">
-                No events yet. Click on a date in the calendar to create your first memory.
+                {t('noEvents')}
               </p>
             )}
           </div>
@@ -225,6 +247,12 @@ const Dashboard = () => {
         selectedDate={selectedDate}
         onSave={handleSaveEvent}
         event={selectedEvent}
+      />
+      
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </DashboardLayout>
   );

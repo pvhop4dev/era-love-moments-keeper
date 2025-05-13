@@ -114,7 +114,7 @@
   }
   
   .calendar-day {
-    @apply h-10 w-10 rounded-full flex items-center justify-center cursor-pointer transition-all;
+    @apply h-10 w-10 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-love-50;
   }
   
   .calendar-day-current {
@@ -122,10 +122,11 @@
   }
   
   .calendar-day-event {
-    @apply border-2 border-couple;
+    @apply relative;
   }
 
   .heart-icon {
+    @apply animate-pulse;
     color: theme(colors.love.500);
     filter: drop-shadow(0 0 2px theme(colors.love.300));
   }

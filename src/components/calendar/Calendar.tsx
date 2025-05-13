@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Heart } from "lucide-react";
 
 interface CalendarProps {
   onDateClick: (date: Date) => void;
@@ -109,9 +109,15 @@ const Calendar = ({ onDateClick, events }: CalendarProps) => {
               onClick={() => onDateClick(day)}
               className={`calendar-day ${isCurrentMonth(day) ? '' : 'text-muted-foreground opacity-40'} ${
                 isToday(day) ? 'calendar-day-current' : ''
-              } ${hasEvent(day) ? 'calendar-day-event' : ''}`}
+              } relative`}
             >
               {day.getDate()}
+              {hasEvent(day) && (
+                <Heart 
+                  className="absolute -top-1 -right-1 h-3 w-3 text-love-500 heart-icon" 
+                  fill="#FB7185" 
+                />
+              )}
             </div>
           ))}
         </div>
