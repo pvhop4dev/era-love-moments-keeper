@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Calendar, Clock, Image as ImageIcon, Trash } from "lucide-react";
+import { Calendar, Clock, Trash } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface EventModalProps {
   isOpen: boolean;
@@ -30,10 +31,11 @@ export interface EventData {
   date: string;
   time: string;
   location: string;
-  images: string[];
+  images: string[];  // Keeping for backward compatibility
 }
 
 const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModalProps) => {
+  const { t } = useLanguage();
   const [eventData, setEventData] = useState<EventData>({
     id: "",
     title: "",
@@ -43,8 +45,6 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
     location: "",
     images: [],
   });
-  
-  const [imageURLs, setImageURLs] = useState<string>("");
 
   useEffect(() => {
     if (selectedDate) {
@@ -56,7 +56,6 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
     
     if (event) {
       setEventData(event);
-      setImageURLs(event.images.join("\n"));
     } else {
       // Generate a unique ID for new events
       setEventData((prev) => ({
@@ -73,25 +72,15 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
     });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setImageURLs(e.target.value);
-  };
-
   const handleSave = () => {
     if (!eventData.title) {
       toast.error("Please enter an event title");
       return;
     }
 
-    // Process image URLs
-    const images = imageURLs
-      .split("\n")
-      .map(url => url.trim())
-      .filter(url => url !== "");
-
     const finalEventData = {
       ...eventData,
-      images,
+      images: [], // Keep empty array for backward compatibility
     };
 
     onSave(finalEventData);
@@ -105,43 +94,43 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
         <DialogHeader>
           <DialogTitle className="text-love-700 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-love-500" />
-            {event ? "Edit Event" : "Create New Event"}
+            {event ? t('editEvent') : t('createEvent')}
           </DialogTitle>
           <DialogDescription>
             {selectedDate
-              ? `Add a special moment for ${selectedDate.toLocaleDateString('en-US', {
+              ? `${t('addMoment')} ${selectedDate.toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })}`
-              : "Create a new event for your love journey"}
+              : t('createNewEvent')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t('title')}</Label>
             <Input
               id="title"
               name="title"
               value={eventData.title}
               onChange={handleChange}
-              placeholder="Dinner Date, Anniversary, etc."
+              placeholder={t('eventPlaceholder')}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('description')}</Label>
             <Textarea
               id="description"
               name="description"
               value={eventData.description}
               onChange={handleChange}
-              placeholder="Write about this special moment..."
+              placeholder={t('descriptionPlaceholder')}
               rows={3}
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">{t('date')}</Label>
               <div className="relative">
                 <Calendar className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -155,7 +144,7 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="time">Time</Label>
+              <Label htmlFor="time">{t('time')}</Label>
               <div className="relative">
                 <Clock className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -170,30 +159,14 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="location">{t('location')}</Label>
             <Input
               id="location"
               name="location"
               value={eventData.location}
               onChange={handleChange}
-              placeholder="Where did you meet?"
+              placeholder={t('locationPlaceholder')}
             />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="images" className="flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-muted-foreground" />
-              Images (one URL per line)
-            </Label>
-            <Textarea
-              id="images"
-              value={imageURLs}
-              onChange={handleImageChange}
-              placeholder="https://example.com/image1.jpg"
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground">
-              Add photo URLs of this moment (one per line)
-            </p>
           </div>
         </div>
         <DialogFooter className="flex gap-2">
@@ -202,7 +175,7 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
             onClick={onClose}
             className="border-love-200 hover:bg-love-50"
           >
-            Cancel
+            {t('cancel')}
           </Button>
           {event && (
             <Button 
@@ -210,16 +183,16 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
               className="flex items-center gap-1"
               onClick={() => {
                 // This would handle delete in a real app
-                toast.success("Event deleted successfully!");
+                toast.success(t('eventDeleted'));
                 onClose();
               }}
             >
               <Trash className="h-4 w-4" />
-              Delete
+              {t('delete')}
             </Button>
           )}
           <Button onClick={handleSave} className="love-button">
-            {event ? "Update" : "Create"} Event
+            {event ? t('update') : t('create')} {t('event')}
           </Button>
         </DialogFooter>
       </DialogContent>

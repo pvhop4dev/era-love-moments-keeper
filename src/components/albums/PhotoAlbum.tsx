@@ -6,25 +6,24 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { PhotoData } from "@/components/photos/PhotoModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PhotoAlbumProps {
-  eventTitle: string;
-  eventDate: string;
-  images: string[];
+  photos: PhotoData[];
+  onSelectPhoto: (photo: PhotoData) => void;
 }
 
-const PhotoAlbum = ({ eventTitle, eventDate, images }: PhotoAlbumProps) => {
+const PhotoAlbum = ({ photos, onSelectPhoto }: PhotoAlbumProps) => {
+  const { t } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState<number>(0);
 
-  const openImageViewer = (image: string, index: number) => {
-    setSelectedImage(image);
-    setCurrentImageIndex(index);
+  const openImageViewer = (photo: PhotoData, index: number) => {
+    setSelectedImage(photo.imageUrl);
+    setCurrentPhotoIndex(index);
   };
 
   const closeImageViewer = () => {
@@ -32,17 +31,17 @@ const PhotoAlbum = ({ eventTitle, eventDate, images }: PhotoAlbumProps) => {
   };
 
   const navigateImage = (direction: "next" | "prev") => {
-    if (images.length <= 1) return;
+    if (photos.length <= 1) return;
     
     let newIndex;
     if (direction === "next") {
-      newIndex = (currentImageIndex + 1) % images.length;
+      newIndex = (currentPhotoIndex + 1) % photos.length;
     } else {
-      newIndex = (currentImageIndex - 1 + images.length) % images.length;
+      newIndex = (currentPhotoIndex - 1 + photos.length) % photos.length;
     }
     
-    setCurrentImageIndex(newIndex);
-    setSelectedImage(images[newIndex]);
+    setCurrentPhotoIndex(newIndex);
+    setSelectedImage(photos[newIndex].imageUrl);
   };
 
   return (
@@ -51,41 +50,44 @@ const PhotoAlbum = ({ eventTitle, eventDate, images }: PhotoAlbumProps) => {
         <CardHeader>
           <CardTitle className="text-center flex items-center justify-center gap-2">
             <ImageIcon className="h-5 w-5 text-love-500" />
-            Photo Album: {eventTitle}
+            {t('photoAlbum')}
           </CardTitle>
-          <p className="text-center text-sm text-muted-foreground">
-            {new Date(eventDate).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
         </CardHeader>
         <CardContent>
-          {images.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {images.map((image, index) => (
+          {photos.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+              {photos.map((photo, index) => (
                 <div 
-                  key={index} 
-                  className="aspect-square overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-all hover:shadow-md"
-                  onClick={() => openImageViewer(image, index)}
+                  key={photo.id} 
+                  className="relative group"
                 >
-                  <img 
-                    src={image} 
-                    alt={`Memory ${index + 1}`} 
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://via.placeholder.com/400x400?text=Image+Not+Found";
-                    }}
-                  />
+                  <div 
+                    className="aspect-square overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-all hover:shadow-md"
+                    onClick={() => openImageViewer(photo, index)}
+                  >
+                    <img 
+                      src={photo.imageUrl} 
+                      alt={photo.title} 
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://via.placeholder.com/400x400?text=Image+Not+Found";
+                      }}
+                    />
+                  </div>
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-2 text-sm truncate rounded-b-lg"
+                    onClick={() => onSelectPhoto(photo)}
+                  >
+                    {photo.title}
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-10 text-muted-foreground">
               <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-30" />
-              <p>No photos added to this event yet</p>
-              <p className="text-sm">Add image URLs in the event details</p>
+              <p>{t('noPhotos')}</p>
+              <p className="text-sm">{t('addPhoto')}</p>
             </div>
           )}
         </CardContent>
@@ -104,7 +106,7 @@ const PhotoAlbum = ({ eventTitle, eventDate, images }: PhotoAlbumProps) => {
             </Button>
             
             <div className="flex justify-between items-center absolute top-1/2 transform -translate-y-1/2 w-full px-2 z-10">
-              {images.length > 1 && (
+              {photos.length > 1 && (
                 <>
                   <Button 
                     variant="ghost" 
@@ -133,16 +135,14 @@ const PhotoAlbum = ({ eventTitle, eventDate, images }: PhotoAlbumProps) => {
               }}
             />
             
-            <div className="bg-background/90 p-2 text-center">
-              <p className="font-medium">{eventTitle}</p>
-              <p className="text-sm text-muted-foreground">
-                {new Date(eventDate).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-            </div>
+            {currentPhotoIndex >= 0 && photos[currentPhotoIndex] && (
+              <div className="bg-background/90 p-2 text-center">
+                <p className="font-medium">{photos[currentPhotoIndex].title}</p>
+                <p className="text-sm text-muted-foreground">
+                  {photos[currentPhotoIndex].description}
+                </p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

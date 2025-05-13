@@ -1,128 +1,260 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useState, useContext, ReactNode } from "react";
 
-type Translations = {
+type Language = "en" | "es" | "fr" | "de" | "zh";
+
+interface Translations {
   [key: string]: {
     [key: string]: string;
   };
-};
+}
 
-// Base translations (can be expanded)
 const translations: Translations = {
-  en: {
-    welcome: "Welcome back",
-    yourSpecialMoments: "Your Special Moments",
-    noEvents: "No events yet. Click on a date in the calendar to create your first memory.",
-    logout: "Logout",
-    createEvent: "Create Event",
-    updateEvent: "Update Event",
-    deleteEvent: "Delete Event",
-    settings: "Settings",
-    photoAlbum: "Photo Album",
-    saveSettings: "Save Settings",
-    cancel: "Cancel"
+  welcome: {
+    en: "Welcome to Your Love Journey",
+    es: "Bienvenido a tu viaje de amor",
+    fr: "Bienvenue dans votre voyage d'amour",
+    de: "Willkommen zu deiner Liebesreise",
+    zh: "欢迎来到你的爱情旅程"
   },
-  es: {
-    welcome: "Bienvenido de nuevo",
-    yourSpecialMoments: "Tus Momentos Especiales",
-    noEvents: "Aún no hay eventos. Haz clic en una fecha en el calendario para crear tu primer recuerdo.",
-    logout: "Cerrar sesión",
-    createEvent: "Crear Evento",
-    updateEvent: "Actualizar Evento",
-    deleteEvent: "Eliminar Evento",
-    settings: "Configuración",
-    photoAlbum: "Álbum de Fotos",
-    saveSettings: "Guardar Configuración",
-    cancel: "Cancelar"
+  settings: {
+    en: "Settings",
+    es: "Configuraciones",
+    fr: "Paramètres",
+    de: "Einstellungen",
+    zh: "设置"
   },
-  fr: {
-    welcome: "Bienvenue",
-    yourSpecialMoments: "Vos Moments Spéciaux",
-    noEvents: "Pas encore d'événements. Cliquez sur une date dans le calendrier pour créer votre premier souvenir.",
-    logout: "Déconnexion",
-    createEvent: "Créer un Événement",
-    updateEvent: "Mettre à jour l'Événement",
-    deleteEvent: "Supprimer l'Événement",
-    settings: "Paramètres",
-    photoAlbum: "Album Photo",
-    saveSettings: "Enregistrer les Paramètres",
-    cancel: "Annuler"
+  yourSpecialMoments: {
+    en: "Your Special Moments",
+    es: "Tus momentos especiales",
+    fr: "Vos moments spéciaux",
+    de: "Deine besonderen Momente",
+    zh: "你的特别时刻"
   },
-  de: {
-    welcome: "Willkommen zurück",
-    yourSpecialMoments: "Deine besonderen Momente",
-    noEvents: "Noch keine Ereignisse. Klicke auf ein Datum im Kalender, um deine erste Erinnerung zu erstellen.",
-    logout: "Abmelden",
-    createEvent: "Ereignis erstellen",
-    updateEvent: "Ereignis aktualisieren",
-    deleteEvent: "Ereignis löschen",
-    settings: "Einstellungen",
-    photoAlbum: "Fotoalbum",
-    saveSettings: "Einstellungen speichern",
-    cancel: "Abbrechen"
+  noEvents: {
+    en: "No events yet. Click on a day to create one.",
+    es: "Aún no hay eventos. Haga clic en un día para crear uno.",
+    fr: "Pas encore d'événements. Cliquez sur un jour pour en créer un.",
+    de: "Noch keine Ereignisse. Klicke auf einen Tag, um eines zu erstellen.",
+    zh: "还没有事件。点击一天来创建一个。"
   },
-  zh: {
-    welcome: "欢迎回来",
-    yourSpecialMoments: "你的特别时刻",
-    noEvents: "还没有活动。点击日历中的日期创建你的第一个回忆。",
-    logout: "登出",
-    createEvent: "创建活动",
-    updateEvent: "更新活动",
-    deleteEvent: "删除活动",
-    settings: "设置",
-    photoAlbum: "相册",
-    saveSettings: "保存设置",
-    cancel: "取消"
+  logout: {
+    en: "Logout",
+    es: "Cerrar sesión",
+    fr: "Déconnexion",
+    de: "Abmelden",
+    zh: "登出"
+  },
+  cancel: {
+    en: "Cancel",
+    es: "Cancelar",
+    fr: "Annuler",
+    de: "Abbrechen",
+    zh: "取消"
+  },
+  save: {
+    en: "Save",
+    es: "Guardar",
+    fr: "Sauvegarder",
+    de: "Speichern",
+    zh: "保存"
+  },
+  delete: {
+    en: "Delete",
+    es: "Eliminar",
+    fr: "Supprimer",
+    de: "Löschen",
+    zh: "删除"
+  },
+  update: {
+    en: "Update",
+    es: "Actualizar",
+    fr: "Mettre à jour",
+    de: "Aktualisieren",
+    zh: "更新"
+  },
+  create: {
+    en: "Create",
+    es: "Crear",
+    fr: "Créer",
+    de: "Erstellen",
+    zh: "创建"
+  },
+  event: {
+    en: "Event",
+    es: "Evento",
+    fr: "Événement",
+    de: "Ereignis",
+    zh: "事件"
+  },
+  photoAlbum: {
+    en: "Photo Album",
+    es: "Álbum de fotos",
+    fr: "Album photo",
+    de: "Fotoalbum",
+    zh: "相册"
+  },
+  addPhoto: {
+    en: "Add New Photo",
+    es: "Añadir nueva foto",
+    fr: "Ajouter une nouvelle photo",
+    de: "Neues Foto hinzufügen",
+    zh: "添加新照片"
+  },
+  noPhotos: {
+    en: "No photos added yet",
+    es: "Aún no se han añadido fotos",
+    fr: "Aucune photo ajoutée pour le moment",
+    de: "Noch keine Fotos hinzugefügt",
+    zh: "尚未添加照片"
+  },
+  title: {
+    en: "Title",
+    es: "Título",
+    fr: "Titre",
+    de: "Titel",
+    zh: "标题"
+  },
+  description: {
+    en: "Description",
+    es: "Descripción",
+    fr: "Description",
+    de: "Beschreibung",
+    zh: "描述"
+  },
+  date: {
+    en: "Date",
+    es: "Fecha",
+    fr: "Date",
+    de: "Datum",
+    zh: "日期"
+  },
+  time: {
+    en: "Time",
+    es: "Hora",
+    fr: "Heure",
+    de: "Zeit",
+    zh: "时间"
+  },
+  location: {
+    en: "Location",
+    es: "Ubicación",
+    fr: "Lieu",
+    de: "Standort",
+    zh: "位置"
+  },
+  editEvent: {
+    en: "Edit Event",
+    es: "Editar evento",
+    fr: "Modifier l'événement",
+    de: "Ereignis bearbeiten",
+    zh: "编辑事件"
+  },
+  createEvent: {
+    en: "Create New Event",
+    es: "Crear nuevo evento",
+    fr: "Créer un nouvel événement",
+    de: "Neues Ereignis erstellen",
+    zh: "创建新事件"
+  },
+  addMoment: {
+    en: "Add a special moment for",
+    es: "Añadir un momento especial para",
+    fr: "Ajouter un moment spécial pour",
+    de: "Füge einen besonderen Moment hinzu für",
+    zh: "为以下日期添加特别时刻"
+  },
+  createNewEvent: {
+    en: "Create a new event for your love journey",
+    es: "Crear un nuevo evento para tu viaje de amor",
+    fr: "Créer un nouvel événement pour votre voyage d'amour",
+    de: "Erstellen Sie ein neues Ereignis für Ihre Liebesreise",
+    zh: "为你的爱情旅程创建一个新事件"
+  },
+  eventPlaceholder: {
+    en: "Dinner Date, Anniversary, etc.",
+    es: "Cena, Aniversario, etc.",
+    fr: "Dîner, Anniversaire, etc.",
+    de: "Abendessen, Jahrestag, usw.",
+    zh: "晚餐约会、周年纪念日等"
+  },
+  descriptionPlaceholder: {
+    en: "Write about this special moment...",
+    es: "Escribe sobre este momento especial...",
+    fr: "Écrivez à propos de ce moment spécial...",
+    de: "Schreibe über diesen besonderen Moment...",
+    zh: "写下这个特别时刻的故事..."
+  },
+  locationPlaceholder: {
+    en: "Where did you meet?",
+    es: "¿Dónde se conocieron?",
+    fr: "Où vous êtes-vous rencontrés?",
+    de: "Wo habt ihr euch getroffen?",
+    zh: "你们在哪里相遇？"
+  },
+  eventDeleted: {
+    en: "Event deleted successfully!",
+    es: "¡Evento eliminado con éxito!",
+    fr: "Événement supprimé avec succès!",
+    de: "Ereignis erfolgreich gelöscht!",
+    zh: "事件删除成功！"
+  },
+  language: {
+    en: "Language",
+    es: "Idioma",
+    fr: "Langue",
+    de: "Sprache",
+    zh: "语言"
+  },
+  background: {
+    en: "Background Image",
+    es: "Imagen de fondo",
+    fr: "Image de fond",
+    de: "Hintergrundbild",
+    zh: "背景图片"
   }
 };
 
 interface LanguageContextType {
-  language: string;
-  setLanguage: (language: string) => void;
+  language: Language;
+  setLanguage: (language: Language) => void;
   t: (key: string) => string;
 }
 
-const LanguageContext = createContext<LanguageContextType>({
-  language: "en",
-  setLanguage: () => {},
-  t: () => "",
-});
-
-export const useLanguage = () => useContext(LanguageContext);
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState<Language>(() => {
+    // Get language from localStorage or use default
+    const savedLanguage = localStorage.getItem("eralove-language");
+    return (savedLanguage as Language) || "en";
+  });
 
-  useEffect(() => {
-    // Load language preference from localStorage
-    const storedSettings = localStorage.getItem("eralove-settings");
-    if (storedSettings) {
-      try {
-        const { language } = JSON.parse(storedSettings);
-        if (language && translations[language]) {
-          setLanguage(language);
-        }
-      } catch (error) {
-        console.error("Error loading language settings:", error);
-      }
-    }
-  }, []);
-
-  // Translation function
   const t = (key: string): string => {
-    if (!translations[language]) return translations.en[key] || key;
-    return translations[language][key] || translations.en[key] || key;
+    if (translations[key] && translations[key][language]) {
+      return translations[key][language];
+    }
+    
+    // Fallback to English or the key itself
+    return translations[key]?.["en"] || key;
   };
 
-  const value = {
-    language,
-    setLanguage,
-    t,
+  const handleSetLanguage = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    localStorage.setItem("eralove-language", newLanguage);
   };
 
   return (
-    <LanguageContext.Provider value={value}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
+};
+
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error("useLanguage must be used within a LanguageProvider");
+  }
+  return context;
 };
