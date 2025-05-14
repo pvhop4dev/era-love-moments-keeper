@@ -90,25 +90,25 @@ const Calendar = ({ onDateClick, events, selectedDate }: CalendarProps) => {
   };
 
   return (
-    <Card className="love-card h-full">
-      <CardHeader className="pb-2">
+    <Card className="love-card h-auto">
+      <CardHeader className="pb-1 pt-3">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={prevMonth}>
-            <ChevronLeft className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={prevMonth} className="h-7 w-7">
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <CardTitle className="text-center flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5 text-love-500" />
+          <CardTitle className="text-center flex items-center gap-2 text-base">
+            <CalendarIcon className="h-4 w-4 text-love-500" />
             {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </CardTitle>
-          <Button variant="ghost" size="icon" onClick={nextMonth}>
-            <ChevronRight className="h-5 w-5" />
+          <Button variant="ghost" size="icon" onClick={nextMonth} className="h-7 w-7">
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-            <div key={day} className="text-center text-sm font-medium text-muted-foreground">
+      <CardContent className="pt-1 pb-3">
+        <div className="grid grid-cols-7 gap-1 mb-1">
+          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day) => (
+            <div key={day} className="text-center text-xs font-medium text-muted-foreground">
               {day}
             </div>
           ))}
@@ -120,12 +120,12 @@ const Calendar = ({ onDateClick, events, selectedDate }: CalendarProps) => {
               onClick={() => onDateClick(day)}
               className={`calendar-day ${isCurrentMonth(day) ? '' : 'text-muted-foreground opacity-40'} ${
                 isToday(day) ? 'calendar-day-current' : ''
-              } ${isSelectedDate(day) ? 'calendar-day-selected' : ''} relative`}
+              } ${isSelectedDate(day) ? 'calendar-day-selected' : ''} relative text-xs flex items-center justify-center h-6 w-6 rounded-full`}
             >
               {day.getDate()}
               {hasEvent(day) && (
                 <Heart 
-                  className="absolute -top-1 -right-1 h-3 w-3 text-love-500 heart-icon" 
+                  className="absolute -top-1 -right-1 h-2 w-2 text-love-500 heart-icon" 
                   fill="#FB7185" 
                 />
               )}
