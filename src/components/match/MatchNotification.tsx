@@ -2,9 +2,14 @@
 import { useState, useEffect } from "react";
 import { Bell, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getPendingMatchRequests, MatchRequest } from "@/utils/matchUtils";
+import { 
+  getPendingMatchRequests, 
+  MatchRequest,
+  getActiveMatch
+} from "@/utils/matchUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MatchRequestModal from "./MatchRequestModal";
+import { Badge } from "@/components/ui/badge";
 
 interface MatchNotificationProps {
   userEmail: string;
@@ -17,10 +22,14 @@ const MatchNotification = ({ userEmail, userName, hasMatch }: MatchNotificationP
   const [pendingRequests, setPendingRequests] = useState<MatchRequest[]>([]);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
+  const [activeMatch, setActiveMatch] = useState<MatchRequest | null>(null);
   
   const loadPendingRequests = () => {
     const requests = getPendingMatchRequests(userEmail);
     setPendingRequests(requests);
+    
+    const match = getActiveMatch(userEmail);
+    setActiveMatch(match);
   };
   
   useEffect(() => {
@@ -58,9 +67,9 @@ const MatchNotification = ({ userEmail, userName, hasMatch }: MatchNotificationP
           >
             <Bell className="w-4 h-4 text-love-500" />
             {t('pendingRequests')}
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
               {pendingRequests.length}
-            </span>
+            </Badge>
           </Button>
         )}
       </div>

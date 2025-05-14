@@ -102,6 +102,11 @@ export const acceptMatchRequest = (
       localStorage.getItem("eralove-match-requests") || "[]"
     );
     
+    const matchRequest = allRequests.find(req => req.id === requestId);
+    if (!matchRequest) {
+      return false;
+    }
+    
     const updatedRequests = allRequests.map(req => {
       if (req.id === requestId) {
         return {
@@ -115,10 +120,51 @@ export const acceptMatchRequest = (
     });
     
     localStorage.setItem("eralove-match-requests", JSON.stringify(updatedRequests));
+    
+    // Update both users to be connected
+    updateUserPartnerInfo(matchRequest.requesterEmail, matchRequest.recipientEmail, startDate);
+    
     return true;
   } catch (error) {
     console.error("Error accepting match request:", error);
     return false;
+  }
+};
+
+/**
+ * Update both users with partner information after a match is accepted
+ */
+const updateUserPartnerInfo = (requesterEmail: string, recipientEmail: string, anniversaryDate: string) => {
+  // Get all users
+  const allUsers = JSON.parse(localStorage.getItem("eralove-users") || "[]");
+  
+  // Find both users
+  const requester = allUsers.find(u => u.email === requesterEmail);
+  const recipient = allUsers.find(u => u.email === recipientEmail);
+  
+  if (requester && recipient) {
+    // Update requester with recipient info
+    requester.partnerName = recipient.name;
+    requester.anniversaryDate = anniversaryDate;
+    
+    // Update recipient with requester info
+    recipient.partnerName = requester.name;
+    recipient.anniversaryDate = anniversaryDate;
+    
+    // Save updated users
+    localStorage.setItem("eralove-users", JSON.stringify(allUsers));
+    
+    // Also update current user session if applicable
+    const currentUser = JSON.parse(localStorage.getItem("eralove-user") || "{}");
+    if (currentUser.email === requesterEmail) {
+      currentUser.partnerName = recipient.name;
+      currentUser.anniversaryDate = anniversaryDate;
+      localStorage.setItem("eralove-user", JSON.stringify(currentUser));
+    } else if (currentUser.email === recipientEmail) {
+      currentUser.partnerName = requester.name;
+      currentUser.anniversaryDate = anniversaryDate;
+      localStorage.setItem("eralove-user", JSON.stringify(currentUser));
+    }
   }
 };
 

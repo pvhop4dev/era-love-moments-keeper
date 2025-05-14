@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoveCounter from "@/components/dashboard/LoveCounter";
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Settings, Image as ImageIcon, Calendar as CalendarIcon } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getActiveMatch } from "@/utils/matchUtils";
+import { getActiveMatch, getPartnerDetails } from "@/utils/matchUtils";
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -33,6 +34,11 @@ const Dashboard = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventData | undefined>(undefined);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoData | undefined>(undefined);
   const [hasActiveMatch, setHasActiveMatch] = useState(false);
+  const [partnerDetails, setPartnerDetails] = useState<{
+    name: string;
+    email: string;
+    anniversaryDate: string;
+  } | null>(null);
   
   useEffect(() => {
     // Load user data
@@ -48,6 +54,12 @@ const Dashboard = () => {
       if (parsedUser.email) {
         const activeMatch = getActiveMatch(parsedUser.email);
         setHasActiveMatch(!!activeMatch);
+        
+        // If there's an active match, get partner details
+        if (activeMatch) {
+          const partner = getPartnerDetails(parsedUser.email);
+          setPartnerDetails(partner);
+        }
       }
     }
     
@@ -245,7 +257,10 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* First Row */}
         <div className="md:col-span-2">
-          <LoveCounter anniversaryDate={userData.anniversaryDate} />
+          <LoveCounter 
+            anniversaryDate={hasActiveMatch ? partnerDetails?.anniversaryDate || userData.anniversaryDate : null} 
+            partnerName={hasActiveMatch ? partnerDetails?.name || userData.partnerName : null}
+          />
         </div>
         <div>
           <FengShuiInfo />
