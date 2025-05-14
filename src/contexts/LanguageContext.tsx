@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type TranslationKey = 
   | 'welcome'
@@ -51,7 +52,29 @@ type TranslationKey =
   | 'passwordMismatch'
   | 'emailExists'
   | 'registrationSuccess'
-  | 'registrationError';
+  | 'registrationError'
+  | 'photoAlbum'
+  | 'noPhotos'
+  | 'events'
+  | 'photos'
+  | 'addEvent'
+  | 'noEventsForThisDay'
+  | 'noPhotosForThisDay'
+  | 'editEvent'
+  | 'createEvent'
+  | 'addMoment'
+  | 'createNewEvent'
+  | 'eventPlaceholder'
+  | 'descriptionPlaceholder'
+  | 'date'
+  | 'time'
+  | 'location'
+  | 'locationPlaceholder'
+  | 'eventDeleted'
+  | 'delete'
+  | 'update'
+  | 'create'
+  | 'event';
 
 type Translations = {
   [key in TranslationKey]: string;
@@ -117,7 +140,29 @@ const translations: Record<Languages, Translations> = {
     passwordMismatch: 'Passwords do not match',
     emailExists: 'Email already exists',
     registrationSuccess: 'Registration successful!',
-    registrationError: 'Error registering'
+    registrationError: 'Error registering',
+    photoAlbum: 'Photo Album',
+    noPhotos: 'No photos yet. Add your first memory!',
+    events: 'Events',
+    photos: 'Photos',
+    addEvent: 'Add Event',
+    noEventsForThisDay: 'No events for this day',
+    noPhotosForThisDay: 'No photos for this day',
+    editEvent: 'Edit Event',
+    createEvent: 'Create Event',
+    addMoment: 'Add a moment',
+    createNewEvent: 'Create New Event',
+    eventPlaceholder: 'Enter event title',
+    descriptionPlaceholder: 'Enter event description',
+    date: 'Date',
+    time: 'Time',
+    location: 'Location',
+    locationPlaceholder: 'Enter location',
+    eventDeleted: 'Event deleted successfully',
+    delete: 'Delete',
+    update: 'Update',
+    create: 'Create',
+    event: 'event'
   },
   
   es: {
@@ -171,7 +216,29 @@ const translations: Record<Languages, Translations> = {
     passwordMismatch: 'Las contraseñas no coinciden',
     emailExists: 'El email ya existe',
     registrationSuccess: '¡Registro exitoso!',
-    registrationError: 'Error al registrarse'
+    registrationError: 'Error al registrarse',
+    photoAlbum: 'Álbum de fotos',
+    noPhotos: 'Aún no hay fotos. ¡Añade tu primer recuerdo!',
+    events: 'Eventos',
+    photos: 'Fotos',
+    addEvent: 'Añadir Evento',
+    noEventsForThisDay: 'No hay eventos para este día',
+    noPhotosForThisDay: 'No hay fotos para este día',
+    editEvent: 'Editar Evento',
+    createEvent: 'Crear Evento',
+    addMoment: 'Añadir un momento',
+    createNewEvent: 'Crear Nuevo Evento',
+    eventPlaceholder: 'Introduce el título del evento',
+    descriptionPlaceholder: 'Introduce la descripción del evento',
+    date: 'Fecha',
+    time: 'Hora',
+    location: 'Ubicación',
+    locationPlaceholder: 'Introduce la ubicación',
+    eventDeleted: 'Evento eliminado con éxito',
+    delete: 'Eliminar',
+    update: 'Actualizar',
+    create: 'Crear',
+    event: 'evento'
   },
   
   fr: {
@@ -225,115 +292,29 @@ const translations: Record<Languages, Translations> = {
     passwordMismatch: 'Les mots de passe ne correspondent pas',
     emailExists: 'Cet email existe déjà',
     registrationSuccess: 'Inscription réussie !',
-    registrationError: 'Erreur lors de l\'inscription'
-  },
-  
-  de: {
-    welcome: 'Willkommen zu deiner Liebesreise',
-    settings: 'Einstellungen',
-    logout: 'Ausloggen',
-    recentPhotos: 'Neueste Fotos',
-    selectDayToSeeDetails: 'Wähle einen Tag, um Details anzuzeigen',
-    editPhoto: 'Foto bearbeiten',
-    addPhoto: 'Neues Foto hinzufügen',
-    title: 'Titel',
-    enterTitle: 'Titel eingeben',
-    description: 'Beschreibung',
-    enterDescription: 'Beschreibung eingeben',
-    image: 'Bild',
-    uploadFromDevice: 'Vom Gerät hochladen',
-    orUseUrl: 'Oder URL verwenden',
-    enterImageUrl: 'Bild-URL eingeben',
-    cancel: 'Abbrechen',
-    updatePhoto: 'Foto aktualisieren',
-    savePhoto: 'Foto speichern',
-    sendMatchRequest: 'Senden Sie eine Partneranfrage',
-    matchRequestReceived: 'Partneranfrage erhalten',
-    partnerEmail: 'Partner-E-Mail',
-    matchRequestExplanation: 'Senden Sie eine Partneranfrage an Ihren Partner. Sie erhalten eine E-Mail, um die Anfrage anzunehmen.',
-    matchRequestFrom: 'Partneranfrage von',
-    setRelationshipStartDate: 'Setzen Sie die Startdatum der Beziehung',
-    selectDate: 'Datum auswählen',
-    matchDateExplanation: 'Dies wird als Ihr Geburtstag verwendet.',
-    sendRequest: 'Anfrage senden',
-    decline: 'Ablehnen',
-    accept: 'Akzeptieren',
-    pendingRequests: 'Ausstehende Anfragen',
-    emailRequired: 'E-Mail ist erforderlich',
-    invalidEmail: 'Bitte geben Sie eine gültige E-Mail ein',
-    cannotMatchSelf: 'Sie können sich nicht mit sich selbst verbinden',
-    startDateRequired: 'Startdatum ist erforderlich',
-    requestAccepted: 'Partneranfrage akzeptiert!',
-    requestDeclined: 'Partneranfrage abgelehnt',
-    errorAcceptingRequest: 'Fehler beim Akzeptieren der Anfrage',
-    errorDecliningRequest: 'Fehler beim Ablehnen der Anfrage',
-    titleRequired: 'Titel ist erforderlich',
-    imageRequired: 'Bild ist erforderlich',
-    photoUpdated: 'Foto erfolgreich aktualisiert',
-    photoAdded: 'Foto erfolgreich hinzugefügt',
-    errorSavingPhoto: 'Fehler beim Speichern des Fotos',
-    userNotFound: 'Benutzer nicht gefunden',
-    invalidPassword: 'Ungültiges Passwort',
-    loginSuccess: 'Anmeldung erfolgreich!',
-    loginError: 'Fehler bei der Anmeldung',
-    passwordMismatch: 'Passwörter stimmen nicht überein',
-    emailExists: 'Diese E-Mail existiert bereits',
-    registrationSuccess: 'Registrierung erfolgreich!',
-    registrationError: 'Fehler bei der Registrierung'
-  },
-  
-  zh: {
-    welcome: '欢迎开始您的爱情旅程',
-    settings: '设置',
-    logout: '登出',
-    recentPhotos: '最近的照片',
-    selectDayToSeeDetails: '选择一天以查看详细信息',
-    editPhoto: '编辑照片',
-    addPhoto: '添加新照片',
-    title: '标题',
-    enterTitle: '输入标题',
-    description: '描述',
-    enterDescription: '输入描述',
-    image: '图片',
-    uploadFromDevice: '从设备上传',
-    orUseUrl: '或使用网址',
-    enterImageUrl: '输入图片网址',
-    cancel: '取消',
-    updatePhoto: '更新照片',
-    savePhoto: '保存照片',
-    sendMatchRequest: '发送匹配请求',
-    matchRequestReceived: '匹配请求已收到',
-    partnerEmail: '伴侣的电子邮件',
-    matchRequestExplanation: '发送匹配请求给你的伴侣。他们将收到一封电子邮件来接受匹配。',
-    matchRequestFrom: '匹配请求来自',
-    setRelationshipStartDate: '设置关系开始日期',
-    selectDate: '选择日期',
-    matchDateExplanation: '这将作为你的生日日期使用。',
-    sendRequest: '发送请求',
-    decline: '拒绝',
-    accept: '接受',
-    pendingRequests: '待处理请求',
-    emailRequired: '电子邮件是必需的',
-    invalidEmail: '请输入有效的电子邮件',
-    cannotMatchSelf: '您不能与自己匹配',
-    startDateRequired: '开始日期是必需的',
-    requestAccepted: '匹配请求已接受！',
-    requestDeclined: '匹配请求已拒绝',
-    errorAcceptingRequest: '匹配请求接受时出错',
-    errorDecliningRequest: '匹配请求拒绝时出错',
-    titleRequired: '标题是必需的',
-    imageRequired: '图片是必需的',
-    photoUpdated: '照片更新成功',
-    photoAdded: '照片添加成功',
-    errorSavingPhoto: '保存照片时出错',
-    userNotFound: '用户未找到',
-    invalidPassword: '无效密码',
-    loginSuccess: '登录成功！',
-    loginError: '登录失败',
-    passwordMismatch: '密码不匹配',
-    emailExists: '电子邮件已存在',
-    registrationSuccess: '注册成功！',
-    registrationError: '注册失败'
+    registrationError: 'Erreur lors de l\'inscription',
+    photoAlbum: 'Album photo',
+    noPhotos: 'Pas encore de photos. Ajoutez votre premier souvenir !',
+    events: 'Événements',
+    photos: 'Photos',
+    addEvent: 'Ajouter un événement',
+    noEventsForThisDay: 'Pas d\'événements pour ce jour',
+    noPhotosForThisDay: 'Pas de photos pour ce jour',
+    editEvent: 'Modifier l\'événement',
+    createEvent: 'Créer un événement',
+    addMoment: 'Ajouter un moment',
+    createNewEvent: 'Créer un nouvel événement',
+    eventPlaceholder: 'Entrez le titre de l\'événement',
+    descriptionPlaceholder: 'Entrez la description de l\'événement',
+    date: 'Date',
+    time: 'Heure',
+    location: 'Lieu',
+    locationPlaceholder: 'Entrez le lieu',
+    eventDeleted: 'Événement supprimé avec succès',
+    delete: 'Supprimer',
+    update: 'Mettre à jour',
+    create: 'Créer',
+    event: 'événement'
   }
 };
 
@@ -346,16 +327,16 @@ const LanguageContext = createContext<LanguageContextType>({
 export const useLanguage = () => useContext(LanguageContext);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState<Languages>('en');
 
   useEffect(() => {
     // Load language preference from localStorage or settings
     const storedSettings = localStorage.getItem("eralove-settings");
     if (storedSettings) {
       try {
-        const { language } = JSON.parse(storedSettings);
-        if (language) {
-          setLanguage(language);
+        const { language: storedLanguage } = JSON.parse(storedSettings);
+        if (storedLanguage && (storedLanguage === 'en' || storedLanguage === 'es' || storedLanguage === 'fr')) {
+          setLanguage(storedLanguage as Languages);
         }
       } catch (error) {
         console.error("Error parsing language settings:", error);
@@ -388,8 +369,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: changeLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
 };
+
