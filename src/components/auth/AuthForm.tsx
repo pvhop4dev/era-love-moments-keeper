@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FormData {
   name?: string;
@@ -17,7 +19,18 @@ interface FormData {
   anniversaryDate?: string;
 }
 
+interface User {
+  id: string;
+  name: string;
+  partnerName?: string;
+  email: string;
+  passwordHash: string; // In a real app, this would be a hashed password
+  anniversaryDate?: string;
+  createdAt: string;
+}
+
 const AuthForm = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -41,44 +54,97 @@ const AuthForm = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login - In a real app, this would connect to authentication service
-    setTimeout(() => {
-      // For demo purposes, we'll just log in anyone
+    try {
+      // Get users from storage
+      const users: User[] = JSON.parse(localStorage.getItem("eralove-users") || "[]");
+      
+      // Find user by email
+      const user = users.find(u => u.email.toLowerCase() === formData.email.toLowerCase());
+      
+      if (!user) {
+        toast.error(t('userNotFound'));
+        setIsLoading(false);
+        return;
+      }
+      
+      // In a real app, we would hash and compare passwords
+      if (user.passwordHash !== formData.password) {
+        toast.error(t('invalidPassword'));
+        setIsLoading(false);
+        return;
+      }
+      
+      // Store current user
       localStorage.setItem("eralove-user", JSON.stringify({
-        name: "Demo User",
-        partnerName: "Demo Partner",
-        email: formData.email,
-        anniversaryDate: "2023-05-13"
+        name: user.name,
+        partnerName: user.partnerName || "",
+        email: user.email,
+        anniversaryDate: user.anniversaryDate || ""
       }));
-      toast.success("Login successful!");
+      
+      toast.success(t('loginSuccess'));
       navigate("/dashboard");
-      setIsLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(t('loginError'));
+    }
+    
+    setIsLoading(false);
   };
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Validate password match
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match!");
-      setIsLoading(false);
-      return;
-    }
-
-    // Simulate registration - In a real app, this would connect to authentication service
-    setTimeout(() => {
-      localStorage.setItem("eralove-user", JSON.stringify({
-        name: formData.name,
-        partnerName: formData.partnerName,
+    try {
+      // Validate password match
+      if (formData.password !== formData.confirmPassword) {
+        toast.error(t('passwordMismatch'));
+        setIsLoading(false);
+        return;
+      }
+      
+      // Get existing users
+      const users: User[] = JSON.parse(localStorage.getItem("eralove-users") || "[]");
+      
+      // Check if email already exists
+      if (users.some(u => u.email.toLowerCase() === formData.email.toLowerCase())) {
+        toast.error(t('emailExists'));
+        setIsLoading(false);
+        return;
+      }
+      
+      // Create new user
+      const newUser: User = {
+        id: uuidv4(),
+        name: formData.name || "",
         email: formData.email,
-        anniversaryDate: formData.anniversaryDate
+        passwordHash: formData.password, // In a real app, this would be hashed
+        partnerName: formData.partnerName || undefined,
+        anniversaryDate: formData.anniversaryDate || undefined,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Add to users collection
+      users.push(newUser);
+      localStorage.setItem("eralove-users", JSON.stringify(users));
+      
+      // Set as current user
+      localStorage.setItem("eralove-user", JSON.stringify({
+        name: newUser.name,
+        partnerName: newUser.partnerName || "",
+        email: newUser.email,
+        anniversaryDate: newUser.anniversaryDate || ""
       }));
-      toast.success("Registration successful!");
+      
+      toast.success(t('registrationSuccess'));
       navigate("/dashboard");
-      setIsLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error(t('registrationError'));
+    }
+    
+    setIsLoading(false);
   };
 
   return (

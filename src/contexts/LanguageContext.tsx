@@ -1,233 +1,352 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState } from 'react';
 
-interface LanguageContextType {
-  t: (key: string) => string;
-  changeLanguage: (lang: string) => void;
-  currentLanguage: string;
-}
+type TranslationKey = 
+  | 'welcome'
+  | 'settings'
+  | 'logout'
+  | 'recentPhotos'
+  | 'selectDayToSeeDetails'
+  | 'editPhoto'
+  | 'addPhoto'
+  | 'title'
+  | 'enterTitle'
+  | 'description'
+  | 'enterDescription'
+  | 'image'
+  | 'uploadFromDevice'
+  | 'orUseUrl'
+  | 'enterImageUrl'
+  | 'cancel'
+  | 'updatePhoto'
+  | 'savePhoto'
+  | 'sendMatchRequest'
+  | 'matchRequestReceived'
+  | 'partnerEmail'
+  | 'matchRequestExplanation'
+  | 'matchRequestFrom'
+  | 'setRelationshipStartDate'
+  | 'selectDate'
+  | 'matchDateExplanation'
+  | 'sendRequest'
+  | 'decline'
+  | 'accept'
+  | 'pendingRequests'
+  | 'emailRequired'
+  | 'invalidEmail'
+  | 'cannotMatchSelf'
+  | 'startDateRequired'
+  | 'requestAccepted'
+  | 'requestDeclined'
+  | 'errorAcceptingRequest'
+  | 'errorDecliningRequest'
+  | 'titleRequired'
+  | 'imageRequired'
+  | 'photoUpdated'
+  | 'photoAdded'
+  | 'errorSavingPhoto'
+  | 'userNotFound'
+  | 'invalidPassword'
+  | 'loginSuccess'
+  | 'loginError'
+  | 'passwordMismatch'
+  | 'emailExists'
+  | 'registrationSuccess'
+  | 'registrationError';
 
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    welcome: "Welcome to your love journey",
-    settings: "Settings",
-    events: "Events",
-    photos: "Photos",
-    logout: "Logout",
-    recentPhotos: "Recent Photos",
-    addEvent: "Add New Event",
-    addPhoto: "Add New Photo",
-    selectDayToSeeDetails: "Select a day to see details",
-    noEventsForThisDay: "No events for this day",
-    noPhotosForThisDay: "No photos for this day",
-    title: "Title",
-    description: "Description",
-    date: "Date",
-    time: "Time",
-    location: "Location",
-    cancel: "Cancel",
-    save: "Save",
-    saveEvent: "Save Event",
-    updateEvent: "Update Event",
-    editEvent: "Edit Event",
-    enterTitle: "Enter title",
-    enterDescription: "Enter description",
-    enterLocation: "Enter location",
-    titleRequired: "Title is required",
-    eventAdded: "Event added successfully",
-    eventUpdated: "Event updated successfully",
-    errorSavingEvent: "Error saving event",
-    editPhoto: "Edit Photo",
-    savePhoto: "Save Photo",
-    updatePhoto: "Update Photo",
-    image: "Image",
-    enterImageUrl: "Enter image URL",
-    imageRequired: "Image is required",
-    photoAdded: "Photo added successfully",
-    photoUpdated: "Photo updated successfully",
-    errorSavingPhoto: "Error saving photo",
-    uploadFromDevice: "Upload from device",
-    orUseUrl: "Or use URL",
-  },
-  es: {
-    welcome: "Bienvenido a tu viaje de amor",
-    settings: "Configuración",
-    events: "Eventos",
-    photos: "Fotos",
-    logout: "Cerrar sesión",
-    recentPhotos: "Fotos recientes",
-    addEvent: "Añadir nuevo evento",
-    addPhoto: "Añadir nueva foto",
-    selectDayToSeeDetails: "Selecciona un día para ver detalles",
-    noEventsForThisDay: "No hay eventos para este día",
-    noPhotosForThisDay: "No hay fotos para este día",
-    title: "Título",
-    description: "Descripción",
-    date: "Fecha",
-    time: "Hora",
-    location: "Ubicación",
-    cancel: "Cancelar",
-    save: "Guardar",
-    saveEvent: "Guardar evento",
-    updateEvent: "Actualizar evento",
-    editEvent: "Editar evento",
-    enterTitle: "Ingrese título",
-    enterDescription: "Ingrese descripción",
-    enterLocation: "Ingrese ubicación",
-    titleRequired: "El título es obligatorio",
-    eventAdded: "Evento agregado con éxito",
-    eventUpdated: "Evento actualizado con éxito",
-    errorSavingEvent: "Error al guardar el evento",
-    editPhoto: "Editar foto",
-    savePhoto: "Guardar foto",
-    updatePhoto: "Actualizar foto",
-    image: "Imagen",
-    enterImageUrl: "Ingrese URL de imagen",
-    imageRequired: "La imagen es obligatoria",
-    photoAdded: "Foto agregada con éxito",
-    photoUpdated: "Foto actualizada con éxito",
-    errorSavingPhoto: "Error al guardar la foto",
-    uploadFromDevice: "Subir desde dispositivo",
-    orUseUrl: "O usar URL",
-  },
-  fr: {
-    welcome: "Bienvenue dans votre voyage d'amour",
-    settings: "Paramètres",
-    events: "Événements",
-    photos: "Photos",
-    logout: "Se déconnecter",
-    recentPhotos: "Photos récentes",
-    addEvent: "Ajouter un nouvel événement",
-    addPhoto: "Ajouter une nouvelle photo",
-    selectDayToSeeDetails: "Sélectionnez un jour pour voir les détails",
-    noEventsForThisDay: "Aucun événement pour ce jour",
-    noPhotosForThisDay: "Aucune photo pour ce jour",
-    title: "Titre",
-    description: "Description",
-    date: "Date",
-    time: "Heure",
-    location: "Lieu",
-    cancel: "Annuler",
-    save: "Enregistrer",
-    saveEvent: "Enregistrer l'événement",
-    updateEvent: "Mettre à jour l'événement",
-    editEvent: "Modifier l'événement",
-    enterTitle: "Entrez le titre",
-    enterDescription: "Entrez la description",
-    enterLocation: "Entrez le lieu",
-    titleRequired: "Le titre est obligatoire",
-    eventAdded: "Événement ajouté avec succès",
-    eventUpdated: "Événement mis à jour avec succès",
-    errorSavingEvent: "Erreur lors de l'enregistrement de l'événement",
-    editPhoto: "Modifier la photo",
-    savePhoto: "Enregistrer la photo",
-    updatePhoto: "Mettre à jour la photo",
-    image: "Image",
-    enterImageUrl: "Entrez l'URL de l'image",
-    imageRequired: "L'image est obligatoire",
-    photoAdded: "Photo ajoutée avec succès",
-    photoUpdated: "Photo mise à jour avec succès",
-    errorSavingPhoto: "Erreur lors de l'enregistrement de la photo",
-    uploadFromDevice: "Télécharger depuis l'appareil",
-    orUseUrl: "Ou utiliser l'URL",
-  },
-  de: {
-    welcome: "Willkommen zu deiner Liebesreise",
-    settings: "Einstellungen",
-    events: "Veranstaltungen",
-    photos: "Fotos",
-    logout: "Ausloggen",
-    recentPhotos: "Neueste Fotos",
-    addEvent: "Neues Ereignis hinzufügen",
-    addPhoto: "Neues Foto hinzufügen",
-    selectDayToSeeDetails: "Wähle einen Tag, um Details anzuzeigen",
-    noEventsForThisDay: "Keine Ereignisse für diesen Tag",
-    noPhotosForThisDay: "Keine Fotos für diesen Tag",
-    title: "Titel",
-    description: "Beschreibung",
-    date: "Datum",
-    time: "Zeit",
-    location: "Ort",
-    cancel: "Abbrechen",
-    save: "Speichern",
-    saveEvent: "Ereignis speichern",
-    updateEvent: "Ereignis aktualisieren",
-    editEvent: "Ereignis bearbeiten",
-    enterTitle: "Titel eingeben",
-    enterDescription: "Beschreibung eingeben",
-    enterLocation: "Ort eingeben",
-    titleRequired: "Titel ist erforderlich",
-    eventAdded: "Ereignis erfolgreich hinzugefügt",
-    eventUpdated: "Ereignis erfolgreich aktualisiert",
-    errorSavingEvent: "Fehler beim Speichern des Ereignisses",
-    editPhoto: "Foto bearbeiten",
-    savePhoto: "Foto speichern",
-    updatePhoto: "Foto aktualisieren",
-    image: "Bild",
-    enterImageUrl: "Bild-URL eingeben",
-    imageRequired: "Bild ist erforderlich",
-    photoAdded: "Foto erfolgreich hinzugefügt",
-    photoUpdated: "Foto erfolgreich aktualisiert",
-    errorSavingPhoto: "Fehler beim Speichern des Fotos",
-    uploadFromDevice: "Vom Gerät hochladen",
-    orUseUrl: "Oder URL verwenden",
-  },
-  zh: {
-    welcome: "欢迎开始您的爱情旅程",
-    settings: "设置",
-    events: "事件",
-    photos: "照片",
-    logout: "登出",
-    recentPhotos: "最近的照片",
-    addEvent: "添加新事件",
-    addPhoto: "添加新照片",
-    selectDayToSeeDetails: "选择一天以查看详细信息",
-    noEventsForThisDay: "今天没有事件",
-    noPhotosForThisDay: "今天没有照片",
-    title: "标题",
-    description: "描述",
-    date: "日期",
-    time: "时间",
-    location: "地点",
-    cancel: "取消",
-    save: "保存",
-    saveEvent: "保存事件",
-    updateEvent: "更新事件",
-    editEvent: "编辑事件",
-    enterTitle: "输入标题",
-    enterDescription: "输入描述",
-    enterLocation: "输入地点",
-    titleRequired: "标题是必需的",
-    eventAdded: "事件添加成功",
-    eventUpdated: "事件更新成功",
-    errorSavingEvent: "保存事件时出错",
-    editPhoto: "编辑照片",
-    savePhoto: "保存照片",
-    updatePhoto: "更新照片",
-    image: "图片",
-    enterImageUrl: "输入图片网址",
-    imageRequired: "图片是必需的",
-    photoAdded: "照片添加成功",
-    photoUpdated: "照片更新成功",
-    errorSavingPhoto: "保存照片时出错",
-    uploadFromDevice: "从设备上传",
-    orUseUrl: "或使用网址",
-  },
+type Translations = {
+  [key in TranslationKey]: string;
 };
 
-const defaultLanguage = "en";
+type Languages = 'en' | 'es' | 'fr';
 
-const LanguageContext = createContext<LanguageContextType>({
-  t: () => "",
-  changeLanguage: () => {},
-  currentLanguage: defaultLanguage,
-});
-
-interface LanguageProviderProps {
-  children: ReactNode;
+interface LanguageContextType {
+  language: Languages;
+  setLanguage: (lang: Languages) => void;
+  t: (key: TranslationKey) => string;
 }
 
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState(defaultLanguage);
+const translations: Record<Languages, Translations> = {
+  en: {
+    welcome: 'Welcome to your Love Journey',
+    settings: 'Settings',
+    logout: 'Logout',
+    recentPhotos: 'Recent Photos',
+    selectDayToSeeDetails: 'Select a day to see details',
+    editPhoto: 'Edit Photo',
+    addPhoto: 'Add Photo',
+    title: 'Title',
+    enterTitle: 'Enter a title',
+    description: 'Description',
+    enterDescription: 'Enter a description',
+    image: 'Image',
+    uploadFromDevice: 'Upload from device',
+    orUseUrl: 'Or use URL',
+    enterImageUrl: 'Enter image URL',
+    cancel: 'Cancel',
+    updatePhoto: 'Update Photo',
+    savePhoto: 'Save Photo',
+    sendMatchRequest: 'Send Match Request',
+    matchRequestReceived: 'Match Request Received',
+    partnerEmail: 'Partner\'s Email',
+    matchRequestExplanation: 'Send a match request to your partner. They will receive an email to accept the match.',
+    matchRequestFrom: 'Match Request From',
+    setRelationshipStartDate: 'Set Relationship Start Date',
+    selectDate: 'Select Date',
+    matchDateExplanation: 'This will be used as your anniversary date.',
+    sendRequest: 'Send Request',
+    decline: 'Decline',
+    accept: 'Accept',
+    pendingRequests: 'Pending Requests',
+    emailRequired: 'Email is required',
+    invalidEmail: 'Please enter a valid email',
+    cannotMatchSelf: 'You cannot match with yourself',
+    startDateRequired: 'Start date is required',
+    requestAccepted: 'Match request accepted!',
+    requestDeclined: 'Match request declined',
+    errorAcceptingRequest: 'Error accepting request',
+    errorDecliningRequest: 'Error declining request',
+    titleRequired: 'Title is required',
+    imageRequired: 'Image is required',
+    photoUpdated: 'Photo updated successfully',
+    photoAdded: 'Photo added successfully',
+    errorSavingPhoto: 'Error saving photo',
+    userNotFound: 'User not found',
+    invalidPassword: 'Invalid password',
+    loginSuccess: 'Login successful!',
+    loginError: 'Error logging in',
+    passwordMismatch: 'Passwords do not match',
+    emailExists: 'Email already exists',
+    registrationSuccess: 'Registration successful!',
+    registrationError: 'Error registering'
+  },
+  
+  es: {
+    welcome: 'Bienvenido a tu viaje de amor',
+    settings: 'Configuración',
+    logout: 'Cerrar sesión',
+    recentPhotos: 'Fotos recientes',
+    selectDayToSeeDetails: 'Selecciona un día para ver detalles',
+    editPhoto: 'Editar foto',
+    addPhoto: 'Añadir nueva foto',
+    title: 'Título',
+    enterTitle: 'Ingrese título',
+    description: 'Descripción',
+    enterDescription: 'Ingrese descripción',
+    image: 'Imagen',
+    uploadFromDevice: 'Subir desde dispositivo',
+    orUseUrl: 'O usar URL',
+    enterImageUrl: 'Ingrese URL de imagen',
+    cancel: 'Cancelar',
+    updatePhoto: 'Actualizar foto',
+    savePhoto: 'Guardar foto',
+    sendMatchRequest: 'Enviar Solicitud de Pareja',
+    matchRequestReceived: 'Solicitud de Pareja Recibida',
+    partnerEmail: 'Email de tu Pareja',
+    matchRequestExplanation: 'Envía una solicitud de pareja. Ellos recibirán un email para aceptar.',
+    matchRequestFrom: 'Solicitud de',
+    setRelationshipStartDate: 'Fecha de Inicio de Relación',
+    selectDate: 'Seleccionar Fecha',
+    matchDateExplanation: 'Esta fecha se usará como fecha de aniversario.',
+    sendRequest: 'Enviar Solicitud',
+    decline: 'Rechazar',
+    accept: 'Aceptar',
+    pendingRequests: 'Solicitudes Pendientes',
+    emailRequired: 'El email es requerido',
+    invalidEmail: 'Ingresa un email válido',
+    cannotMatchSelf: 'No puedes emparejarte contigo mismo',
+    startDateRequired: 'La fecha de inicio es requerida',
+    requestAccepted: '¡Solicitud aceptada!',
+    requestDeclined: 'Solicitud rechazada',
+    errorAcceptingRequest: 'Error al aceptar la solicitud',
+    errorDecliningRequest: 'Error al rechazar la solicitud',
+    titleRequired: 'El título es requerido',
+    imageRequired: 'La imagen es requerida',
+    photoUpdated: 'Foto actualizada exitosamente',
+    photoAdded: 'Foto añadida exitosamente',
+    errorSavingPhoto: 'Error al guardar la foto',
+    userNotFound: 'Usuario no encontrado',
+    invalidPassword: 'Contraseña inválida',
+    loginSuccess: '¡Inicio de sesión exitoso!',
+    loginError: 'Error al iniciar sesión',
+    passwordMismatch: 'Las contraseñas no coinciden',
+    emailExists: 'El email ya existe',
+    registrationSuccess: '¡Registro exitoso!',
+    registrationError: 'Error al registrarse'
+  },
+  
+  fr: {
+    welcome: 'Bienvenue dans votre voyage d\'amour',
+    settings: 'Paramètres',
+    logout: 'Se déconnecter',
+    recentPhotos: 'Photos récentes',
+    selectDayToSeeDetails: 'Sélectionnez un jour pour voir les détails',
+    editPhoto: 'Modifier la photo',
+    addPhoto: 'Ajouter une nouvelle photo',
+    title: 'Titre',
+    enterTitle: 'Entrez le titre',
+    description: 'Description',
+    enterDescription: 'Entrez la description',
+    image: 'Image',
+    uploadFromDevice: 'Télécharger depuis l\'appareil',
+    orUseUrl: 'Ou utiliser l\'URL',
+    enterImageUrl: 'Entrez l\'URL de l\'image',
+    cancel: 'Annuler',
+    updatePhoto: 'Mettre à jour la photo',
+    savePhoto: 'Enregistrer la photo',
+    sendMatchRequest: 'Envoyer une Demande de Match',
+    matchRequestReceived: 'Demande de Match Reçue',
+    partnerEmail: 'Email du Partenaire',
+    matchRequestExplanation: 'Envoyez une demande à votre partenaire. Ils recevront un email pour accepter.',
+    matchRequestFrom: 'Demande de',
+    setRelationshipStartDate: 'Définir la Date de Début de Relation',
+    selectDate: 'Sélectionner une Date',
+    matchDateExplanation: 'Cette date sera utilisée comme votre date d\'anniversaire.',
+    sendRequest: 'Envoyer la Demande',
+    decline: 'Refuser',
+    accept: 'Accepter',
+    pendingRequests: 'Demandes en Attente',
+    emailRequired: 'L\'email est requis',
+    invalidEmail: 'Veuillez saisir un email valide',
+    cannotMatchSelf: 'Vous ne pouvez pas vous associer à vous-même',
+    startDateRequired: 'La date de début est requise',
+    requestAccepted: 'Demande de match acceptée !',
+    requestDeclined: 'Demande de match refusée',
+    errorAcceptingRequest: 'Erreur lors de l\'acceptation de la demande',
+    errorDecliningRequest: 'Erreur lors du refus de la demande',
+    titleRequired: 'Le titre est requis',
+    imageRequired: 'L\'image est requise',
+    photoUpdated: 'Photo mise à jour avec succès',
+    photoAdded: 'Photo ajoutée avec succès',
+    errorSavingPhoto: 'Erreur lors de l\'enregistrement de la photo',
+    userNotFound: 'Utilisateur non trouvé',
+    invalidPassword: 'Mot de passe invalide',
+    loginSuccess: 'Connexion réussie !',
+    loginError: 'Erreur de connexion',
+    passwordMismatch: 'Les mots de passe ne correspondent pas',
+    emailExists: 'Cet email existe déjà',
+    registrationSuccess: 'Inscription réussie !',
+    registrationError: 'Erreur lors de l\'inscription'
+  },
+  
+  de: {
+    welcome: 'Willkommen zu deiner Liebesreise',
+    settings: 'Einstellungen',
+    logout: 'Ausloggen',
+    recentPhotos: 'Neueste Fotos',
+    selectDayToSeeDetails: 'Wähle einen Tag, um Details anzuzeigen',
+    editPhoto: 'Foto bearbeiten',
+    addPhoto: 'Neues Foto hinzufügen',
+    title: 'Titel',
+    enterTitle: 'Titel eingeben',
+    description: 'Beschreibung',
+    enterDescription: 'Beschreibung eingeben',
+    image: 'Bild',
+    uploadFromDevice: 'Vom Gerät hochladen',
+    orUseUrl: 'Oder URL verwenden',
+    enterImageUrl: 'Bild-URL eingeben',
+    cancel: 'Abbrechen',
+    updatePhoto: 'Foto aktualisieren',
+    savePhoto: 'Foto speichern',
+    sendMatchRequest: 'Senden Sie eine Partneranfrage',
+    matchRequestReceived: 'Partneranfrage erhalten',
+    partnerEmail: 'Partner-E-Mail',
+    matchRequestExplanation: 'Senden Sie eine Partneranfrage an Ihren Partner. Sie erhalten eine E-Mail, um die Anfrage anzunehmen.',
+    matchRequestFrom: 'Partneranfrage von',
+    setRelationshipStartDate: 'Setzen Sie die Startdatum der Beziehung',
+    selectDate: 'Datum auswählen',
+    matchDateExplanation: 'Dies wird als Ihr Geburtstag verwendet.',
+    sendRequest: 'Anfrage senden',
+    decline: 'Ablehnen',
+    accept: 'Akzeptieren',
+    pendingRequests: 'Ausstehende Anfragen',
+    emailRequired: 'E-Mail ist erforderlich',
+    invalidEmail: 'Bitte geben Sie eine gültige E-Mail ein',
+    cannotMatchSelf: 'Sie können sich nicht mit sich selbst verbinden',
+    startDateRequired: 'Startdatum ist erforderlich',
+    requestAccepted: 'Partneranfrage akzeptiert!',
+    requestDeclined: 'Partneranfrage abgelehnt',
+    errorAcceptingRequest: 'Fehler beim Akzeptieren der Anfrage',
+    errorDecliningRequest: 'Fehler beim Ablehnen der Anfrage',
+    titleRequired: 'Titel ist erforderlich',
+    imageRequired: 'Bild ist erforderlich',
+    photoUpdated: 'Foto erfolgreich aktualisiert',
+    photoAdded: 'Foto erfolgreich hinzugefügt',
+    errorSavingPhoto: 'Fehler beim Speichern des Fotos',
+    userNotFound: 'Benutzer nicht gefunden',
+    invalidPassword: 'Ungültiges Passwort',
+    loginSuccess: 'Anmeldung erfolgreich!',
+    loginError: 'Fehler bei der Anmeldung',
+    passwordMismatch: 'Passwörter stimmen nicht überein',
+    emailExists: 'Diese E-Mail existiert bereits',
+    registrationSuccess: 'Registrierung erfolgreich!',
+    registrationError: 'Fehler bei der Registrierung'
+  },
+  
+  zh: {
+    welcome: '欢迎开始您的爱情旅程',
+    settings: '设置',
+    logout: '登出',
+    recentPhotos: '最近的照片',
+    selectDayToSeeDetails: '选择一天以查看详细信息',
+    editPhoto: '编辑照片',
+    addPhoto: '添加新照片',
+    title: '标题',
+    enterTitle: '输入标题',
+    description: '描述',
+    enterDescription: '输入描述',
+    image: '图片',
+    uploadFromDevice: '从设备上传',
+    orUseUrl: '或使用网址',
+    enterImageUrl: '输入图片网址',
+    cancel: '取消',
+    updatePhoto: '更新照片',
+    savePhoto: '保存照片',
+    sendMatchRequest: '发送匹配请求',
+    matchRequestReceived: '匹配请求已收到',
+    partnerEmail: '伴侣的电子邮件',
+    matchRequestExplanation: '发送匹配请求给你的伴侣。他们将收到一封电子邮件来接受匹配。',
+    matchRequestFrom: '匹配请求来自',
+    setRelationshipStartDate: '设置关系开始日期',
+    selectDate: '选择日期',
+    matchDateExplanation: '这将作为你的生日日期使用。',
+    sendRequest: '发送请求',
+    decline: '拒绝',
+    accept: '接受',
+    pendingRequests: '待处理请求',
+    emailRequired: '电子邮件是必需的',
+    invalidEmail: '请输入有效的电子邮件',
+    cannotMatchSelf: '您不能与自己匹配',
+    startDateRequired: '开始日期是必需的',
+    requestAccepted: '匹配请求已接受！',
+    requestDeclined: '匹配请求已拒绝',
+    errorAcceptingRequest: '匹配请求接受时出错',
+    errorDecliningRequest: '匹配请求拒绝时出错',
+    titleRequired: '标题是必需的',
+    imageRequired: '图片是必需的',
+    photoUpdated: '照片更新成功',
+    photoAdded: '照片添加成功',
+    errorSavingPhoto: '保存照片时出错',
+    userNotFound: '用户未找到',
+    invalidPassword: '无效密码',
+    loginSuccess: '登录成功！',
+    loginError: '登录失败',
+    passwordMismatch: '密码不匹配',
+    emailExists: '电子邮件已存在',
+    registrationSuccess: '注册成功！',
+    registrationError: '注册失败'
+  }
+};
+
+const LanguageContext = createContext<LanguageContextType>({
+  language: 'en',
+  setLanguage: () => {},
+  t: () => '',
+});
+
+export const useLanguage = () => useContext(LanguageContext);
+
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguage] = useState('en');
 
   useEffect(() => {
     // Load language preference from localStorage or settings
@@ -236,7 +355,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       try {
         const { language } = JSON.parse(storedSettings);
         if (language) {
-          setCurrentLanguage(language);
+          setLanguage(language);
         }
       } catch (error) {
         console.error("Error parsing language settings:", error);
@@ -244,8 +363,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
   }, []);
 
-  const changeLanguage = (lang: string) => {
-    setCurrentLanguage(lang);
+  const changeLanguage = (lang: Languages) => {
+    setLanguage(lang);
     
     // Update language in settings
     const storedSettings = localStorage.getItem("eralove-settings");
@@ -263,16 +382,14 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
   };
 
-  const t = (key: string): string => {
-    const langTranslations = translations[currentLanguage] || translations[defaultLanguage];
+  const t = (key: TranslationKey): string => {
+    const langTranslations = translations[language] || translations['en'];
     return langTranslations[key] || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ t, changeLanguage, currentLanguage }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
 };
-
-export const useLanguage = () => useContext(LanguageContext);

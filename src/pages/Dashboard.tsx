@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoveCounter from "@/components/dashboard/LoveCounter";
@@ -9,16 +8,19 @@ import EventModal, { EventData } from "@/components/events/EventModal";
 import PhotoModal, { PhotoData } from "@/components/photos/PhotoModal";
 import PhotoAlbum from "@/components/albums/PhotoAlbum";
 import SettingsModal from "@/components/settings/SettingsModal";
+import MatchNotification from "@/components/match/MatchNotification";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card"; // Added missing Card import
+import { Card } from "@/components/ui/card";
 import { Settings, Image as ImageIcon, Calendar as CalendarIcon } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getActiveMatch } from "@/utils/matchUtils";
 
 const Dashboard = () => {
   const { t } = useLanguage();
   const [userData, setUserData] = useState({
     name: "",
     partnerName: "",
+    email: "",
     anniversaryDate: "",
   });
   
@@ -30,13 +32,23 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventData | undefined>(undefined);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoData | undefined>(undefined);
+  const [hasActiveMatch, setHasActiveMatch] = useState(false);
   
   useEffect(() => {
     // Load user data
     const storedUser = localStorage.getItem("eralove-user");
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
-      setUserData(parsedUser);
+      setUserData({
+        ...parsedUser,
+        email: parsedUser.email || ""
+      });
+      
+      // Check if user has an active match
+      if (parsedUser.email) {
+        const activeMatch = getActiveMatch(parsedUser.email);
+        setHasActiveMatch(!!activeMatch);
+      }
     }
     
     // Load events
@@ -210,7 +222,16 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">{t('welcome')}</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">{t('welcome')}</h1>
+          <div className="flex items-center gap-2 mt-2">
+            <MatchNotification 
+              userEmail={userData.email} 
+              userName={userData.name}
+              hasMatch={hasActiveMatch}
+            />
+          </div>
+        </div>
         <Button 
           variant="outline" 
           className="flex items-center gap-2" 
