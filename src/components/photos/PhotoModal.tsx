@@ -67,7 +67,9 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
   };
 
   const handleSelectFileClick = () => {
-    fileInputRef.current?.click();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
