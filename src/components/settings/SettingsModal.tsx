@@ -1,12 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Wallpaper, Languages } from "lucide-react";
+import { Wallpaper, Languages, Upload } from "lucide-react";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -23,6 +23,9 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     backgroundImage: "",
     language: "en",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Load existing settings from localStorage
@@ -35,12 +38,22 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         // Apply background if exists
         if (parsedSettings.backgroundImage) {
           applyBackgroundImage(parsedSettings.backgroundImage);
+          setPreviewUrl(parsedSettings.backgroundImage);
         }
       } catch (error) {
         console.error("Error parsing settings:", error);
       }
     }
   }, []);
+
+  useEffect(() => {
+    // Clean up object URLs on unmount
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSettings({
@@ -70,15 +83,71 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     document.body.style.backgroundAttachment = "fixed";
   };
 
-  const handleSave = () => {
-    // Save settings to localStorage
-    localStorage.setItem("eralove-settings", JSON.stringify(settings));
-    
-    // Apply background image
-    applyBackgroundImage(settings.backgroundImage);
-    
-    toast.success("Settings saved successfully!");
-    onClose();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      
+      // Create a preview URL for the image
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      
+      // Clear the input URL since we're using a file now
+      setSettings({
+        ...settings,
+        backgroundImage: "",
+      });
+    }
+  };
+
+  const handleSelectFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const uploadImageToLocalStorage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          // Store the data URL in localStorage
+          const imageKey = `eralove-bg-${Date.now()}`;
+          localStorage.setItem(imageKey, event.target.result as string);
+          resolve(event.target.result as string);
+        } else {
+          reject(new Error("Failed to read file"));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      let backgroundImageUrl = settings.backgroundImage;
+      
+      // If a file was selected, upload it and get the URL
+      if (selectedFile) {
+        backgroundImageUrl = await uploadImageToLocalStorage(selectedFile);
+      }
+      
+      // Save settings to localStorage
+      const updatedSettings = {
+        ...settings,
+        backgroundImage: backgroundImageUrl,
+      };
+      
+      localStorage.setItem("eralove-settings", JSON.stringify(updatedSettings));
+      
+      // Apply background image
+      applyBackgroundImage(backgroundImageUrl);
+      
+      toast.success("Settings saved successfully!");
+      onClose();
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Failed to save settings. Please try again.");
+    }
   };
 
   return (
@@ -89,19 +158,60 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="backgroundImage" className="flex items-center gap-2">
-              <Wallpaper className="h-4 w-4" /> Background Image URL
+            <Label className="flex items-center gap-2">
+              <Wallpaper className="h-4 w-4" /> Background Image
             </Label>
-            <Input
-              id="backgroundImage"
-              name="backgroundImage"
-              value={settings.backgroundImage}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-            />
-            <p className="text-xs text-muted-foreground">
-              Leave empty for default background
-            </p>
+            
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={handleSelectFileClick}
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload from device
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Or use URL:</span>
+                <Input
+                  id="backgroundImage"
+                  name="backgroundImage"
+                  value={settings.backgroundImage}
+                  onChange={handleChange}
+                  placeholder="https://example.com/image.jpg"
+                  className="flex-1"
+                />
+              </div>
+              
+              {(previewUrl || settings.backgroundImage) && (
+                <div className="mt-2 relative rounded-md overflow-hidden border border-border">
+                  <div className="aspect-ratio-16/9 h-40">
+                    <img 
+                      src={previewUrl || settings.backgroundImage} 
+                      alt="Background preview" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://via.placeholder.com/300x150?text=Invalid+Image+URL";
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Leave empty for default background
+              </p>
+            </div>
           </div>
           
           <div className="grid gap-2">

@@ -1,25 +1,20 @@
 
-import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useState, useEffect, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Image as ImageIcon, Trash } from "lucide-react";
+import { Upload } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface PhotoData {
   id: string;
   title: string;
-  date: string;
   description: string;
+  date: string;
   imageUrl: string;
 }
 
@@ -32,127 +27,213 @@ interface PhotoModalProps {
 }
 
 const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModalProps) => {
-  const [photoData, setPhotoData] = useState<PhotoData>({
-    id: "",
-    title: "",
-    date: "",
-    description: "",
-    imageUrl: "",
-  });
-
+  const { t } = useLanguage();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   useEffect(() => {
-    if (selectedDate) {
-      setPhotoData((prev) => ({
-        ...prev,
-        date: selectedDate.toISOString().split("T")[0],
-      }));
-    }
-    
     if (photo) {
-      setPhotoData(photo);
+      setTitle(photo.title);
+      setDescription(photo.description);
+      setImageUrl(photo.imageUrl);
+      setPreviewUrl(photo.imageUrl);
     } else {
-      // Generate a unique ID for new photos
-      setPhotoData((prev) => ({
-        ...prev,
-        id: `photo-${Date.now()}`,
-      }));
+      resetForm();
     }
-  }, [selectedDate, photo, isOpen]);
+  }, [photo, isOpen]);
+  
+  useEffect(() => {
+    // Clean up object URLs on unmount or when changed
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setPhotoData({
-      ...photoData,
-      [e.target.name]: e.target.value,
-    });
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setImageUrl("");
+    setPreviewUrl(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
-  const handleSave = () => {
-    if (!photoData.title) {
-      toast.error("Please enter a photo title");
+  const handleSelectFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      
+      // Create a preview URL for the image
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      
+      // Clear the input URL since we're using a file now
+      setImageUrl("");
+    }
+  };
+
+  const uploadImageToLocalStorage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          // Store the data URL in localStorage
+          const imageKey = `eralove-photo-${Date.now()}`;
+          localStorage.setItem(imageKey, event.target.result as string);
+          resolve(event.target.result as string);
+        } else {
+          reject(new Error("Failed to read file"));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  };
+  
+  const handleSave = async () => {
+    // Validate inputs
+    if (!title.trim()) {
+      toast.error(t('titleRequired'));
       return;
     }
-
-    if (!photoData.imageUrl) {
-      toast.error("Please enter an image URL");
+    
+    // If we have neither a URL nor a file, show error
+    if (!imageUrl && !selectedFile) {
+      toast.error(t('imageRequired'));
       return;
     }
+    
+    try {
+      let finalImageUrl = imageUrl;
+      
+      // If a file was selected, upload it and get the URL
+      if (selectedFile) {
+        finalImageUrl = await uploadImageToLocalStorage(selectedFile);
+      }
 
-    onSave(photoData);
-    toast.success(`Photo ${photo ? "updated" : "added"} successfully!`);
-    onClose();
+      const formattedDate = selectedDate 
+        ? selectedDate.toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+
+      const photoData: PhotoData = {
+        id: photo?.id || `photo-${uuidv4()}`,
+        title,
+        description,
+        date: formattedDate,
+        imageUrl: finalImageUrl
+      };
+      
+      onSave(photoData);
+      onClose();
+      toast.success(photo ? t('photoUpdated') : t('photoAdded'));
+    } catch (error) {
+      console.error("Error saving photo:", error);
+      toast.error(t('errorSavingPhoto'));
+    }
+  };
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageUrl(e.target.value);
+    // If URL is changed, clear selected file
+    if (e.target.value) {
+      setSelectedFile(null);
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(e.target.value);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-love-700 flex items-center gap-2">
-            <ImageIcon className="h-5 w-5 text-love-500" />
-            {photo ? "Edit Photo" : "Add New Photo"}
+          <DialogTitle className="text-love-700">
+            {photo ? t('editPhoto') : t('addPhoto')}
           </DialogTitle>
-          <DialogDescription>
-            {selectedDate
-              ? `Add a photo memory for ${selectedDate.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}`
-              : "Add a new photo to your love journey"}
-          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t('title')}</Label>
             <Input
               id="title"
-              name="title"
-              value={photoData.title}
-              onChange={handleChange}
-              placeholder="Our beach sunset, First kiss, etc."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t('enterTitle')}
             />
           </div>
+          
           <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('description')}</Label>
             <Textarea
               id="description"
-              name="description"
-              value={photoData.description}
-              onChange={handleChange}
-              placeholder="Write about this special photo..."
-              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t('enterDescription')}
             />
           </div>
+          
           <div className="grid gap-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              name="date"
-              type="date"
-              value={photoData.date}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input
-              id="imageUrl"
-              name="imageUrl"
-              value={photoData.imageUrl}
-              onChange={handleChange}
-              placeholder="https://example.com/your-image.jpg"
-            />
-            {photoData.imageUrl && (
-              <div className="mt-2 aspect-video rounded-md overflow-hidden bg-gray-100">
-                <img 
-                  src={photoData.imageUrl} 
-                  alt="Preview" 
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/400x300?text=Image+Not+Found";
-                  }}
+            <Label>{t('image')}</Label>
+            
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={handleSelectFileClick}
+                >
+                  <Upload className="h-4 w-4" />
+                  {t('uploadFromDevice')}
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
                 />
               </div>
-            )}
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">{t('orUseUrl')}:</span>
+                <Input
+                  id="imageUrl"
+                  value={imageUrl}
+                  onChange={handleUrlChange}
+                  placeholder={t('enterImageUrl')}
+                  className="flex-1"
+                />
+              </div>
+              
+              {previewUrl && (
+                <div className="mt-2 relative rounded-md overflow-hidden border border-border">
+                  <div className="h-40">
+                    <img 
+                      src={previewUrl} 
+                      alt="Image preview" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://via.placeholder.com/300x150?text=Invalid+Image+URL";
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <DialogFooter className="flex gap-2">
@@ -161,24 +242,10 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
             onClick={onClose}
             className="border-love-200 hover:bg-love-50"
           >
-            Cancel
+            {t('cancel')}
           </Button>
-          {photo && (
-            <Button 
-              variant="destructive" 
-              className="flex items-center gap-1"
-              onClick={() => {
-                // This would handle delete in a real app
-                toast.success("Photo deleted successfully!");
-                onClose();
-              }}
-            >
-              <Trash className="h-4 w-4" />
-              Delete
-            </Button>
-          )}
           <Button onClick={handleSave} className="love-button">
-            {photo ? "Update" : "Add"} Photo
+            {photo ? t('updatePhoto') : t('savePhoto')}
           </Button>
         </DialogFooter>
       </DialogContent>
