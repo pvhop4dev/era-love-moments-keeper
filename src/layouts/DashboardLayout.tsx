@@ -2,10 +2,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, BellDot } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getActiveMatch } from "@/utils/matchUtils";
+import { getActiveMatch, getPendingMatchRequests } from "@/utils/matchUtils";
+import MatchNotification from "@/components/match/MatchNotification";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { t } = useLanguage();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [hasActiveMatch, setHasActiveMatch] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState<number>(0);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -42,6 +44,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       if (parsedUser.email) {
         const activeMatch = getActiveMatch(parsedUser.email);
         setHasActiveMatch(!!activeMatch);
+        
+        // Check for pending match requests
+        const requests = getPendingMatchRequests(parsedUser.email);
+        setPendingRequests(requests.length);
       }
     } catch (error) {
       console.error("Error parsing user data:", error);
@@ -64,7 +70,17 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         console.error("Error loading background settings:", error);
       }
     }
-  }, [navigate]);
+    
+    // Check for new requests periodically
+    const interval = setInterval(() => {
+      if (userData?.email) {
+        const requests = getPendingMatchRequests(userData.email);
+        setPendingRequests(requests.length);
+      }
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [navigate, userData?.email]);
 
   const handleLogout = () => {
     localStorage.removeItem("eralove-user");
@@ -86,6 +102,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <span className="text-white font-semibold text-lg">EraLove</span>
+            {!hasActiveMatch && pendingRequests > 0 && (
+              <div className="relative">
+                <BellDot className="h-5 w-5 text-white" />
+                <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs bg-destructive text-destructive-foreground">
+                  {pendingRequests}
+                </Badge>
+              </div>
+            )}
           </div>
           
           <div className="hidden md:flex items-center gap-4 text-white">

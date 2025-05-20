@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Bell, Heart } from "lucide-react";
+import { Bell, Heart, BellDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   getPendingMatchRequests, 
@@ -59,19 +59,23 @@ const MatchNotification = ({ userEmail, userName, hasMatch }: MatchNotificationP
           {t('sendMatchRequest')}
         </Button>
         
-        {pendingRequests.length > 0 && (
-          <Button
-            variant="outline"
-            className="flex gap-2 items-center border-love-200 hover:bg-love-50 relative"
-            onClick={() => setIsReceiveModalOpen(true)}
-          >
+        <Button
+          variant="outline"
+          className="flex gap-2 items-center border-love-200 hover:bg-love-50 relative"
+          onClick={() => setIsReceiveModalOpen(true)}
+        >
+          {pendingRequests.length > 0 ? (
+            <BellDot className="w-4 h-4 text-love-500" />
+          ) : (
             <Bell className="w-4 h-4 text-love-500" />
-            {t('pendingRequests')}
+          )}
+          {t('pendingRequests')}
+          {pendingRequests.length > 0 && (
             <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
               {pendingRequests.length}
             </Badge>
-          </Button>
-        )}
+          )}
+        </Button>
       </div>
       
       <MatchRequestModal 
@@ -83,17 +87,15 @@ const MatchNotification = ({ userEmail, userName, hasMatch }: MatchNotificationP
         onRequestHandled={loadPendingRequests}
       />
       
-      {pendingRequests.length > 0 && (
-        <MatchRequestModal 
-          isOpen={isReceiveModalOpen}
-          onClose={() => setIsReceiveModalOpen(false)}
-          userEmail={userEmail}
-          userName={userName}
-          mode="receive"
-          pendingRequest={pendingRequests[0]}
-          onRequestHandled={loadPendingRequests}
-        />
-      )}
+      <MatchRequestModal 
+        isOpen={isReceiveModalOpen}
+        onClose={() => setIsReceiveModalOpen(false)}
+        userEmail={userEmail}
+        userName={userName}
+        mode="receive"
+        pendingRequest={pendingRequests[0]}
+        onRequestHandled={loadPendingRequests}
+      />
     </>
   );
 };
