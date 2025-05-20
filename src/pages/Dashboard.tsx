@@ -235,7 +235,11 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-semibold">{t('welcome')}</h1>
+          <h1 className="text-2xl font-semibold">
+            {hasActiveMatch 
+              ? t('welcome') 
+              : "Please send match request to start your love journey"}
+          </h1>
           <div className="flex items-center gap-2 mt-2">
             <MatchNotification 
               userEmail={userData.email} 
@@ -269,30 +273,52 @@ const Dashboard = () => {
         {/* Second Row - Calendar and Day Details */}
         <div className="md:col-span-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Calendar */}
+            {/* Calendar - Show blank if not paired */}
             <div className="md:col-span-2">
-              <Calendar 
-                onDateClick={handleDateClick} 
-                events={getDaysWithContent()}
-                selectedDate={selectedDate}
-              />
-              
-              {/* Recent Photos Album */}
-              <div className="mt-6">
-                <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
-                  <ImageIcon className="h-5 w-5 text-love-500" />
-                  {t('recentPhotos')}
-                </h2>
-                <PhotoAlbum 
-                  photos={photos.slice(0, 4)}
-                  onSelectPhoto={handleSelectPhoto}
-                />
-              </div>
+              {hasActiveMatch ? (
+                <>
+                  <Calendar 
+                    onDateClick={handleDateClick} 
+                    events={getDaysWithContent()}
+                    selectedDate={selectedDate}
+                  />
+                  
+                  {/* Recent Photos Album */}
+                  <div className="mt-6">
+                    <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
+                      <ImageIcon className="h-5 w-5 text-love-500" />
+                      {t('recentPhotos')}
+                    </h2>
+                    <PhotoAlbum 
+                      photos={photos.slice(0, 4)}
+                      onSelectPhoto={handleSelectPhoto}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Card className="love-card h-auto">
+                    <div className="p-4 text-center text-muted-foreground">
+                      <CalendarIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>Connect with your partner to start your calendar</p>
+                    </div>
+                  </Card>
+                  <div className="mt-6">
+                    <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
+                      <ImageIcon className="h-5 w-5 text-love-500" />
+                      {t('recentPhotos')}
+                    </h2>
+                    <Card className="p-6 text-center text-muted-foreground">
+                      <p>Connect with your partner to add photos together</p>
+                    </Card>
+                  </div>
+                </>
+              )}
             </div>
             
             {/* Day Details Sidebar */}
             <div className="md:col-span-1">
-              {selectedDate ? (
+              {hasActiveMatch && selectedDate ? (
                 <DayDetailsSidebar
                   selectedDate={selectedDate}
                   eventsForDay={getEventsForSelectedDate()}
@@ -306,7 +332,11 @@ const Dashboard = () => {
                 <Card className="h-full flex items-center justify-center p-6">
                   <div className="text-center text-muted-foreground">
                     <CalendarIcon className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                    <p>{t('selectDayToSeeDetails')}</p>
+                    {hasActiveMatch ? (
+                      <p>{t('selectDayToSeeDetails')}</p>
+                    ) : (
+                      <p>Connect with your partner to see daily details</p>
+                    )}
                   </div>
                 </Card>
               )}

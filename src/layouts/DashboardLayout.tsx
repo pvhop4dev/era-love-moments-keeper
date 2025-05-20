@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getActiveMatch } from "@/utils/matchUtils";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ interface UserData {
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { t } = useLanguage();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [hasActiveMatch, setHasActiveMatch] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -35,6 +37,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     try {
       const parsedUser = JSON.parse(storedUser);
       setUserData(parsedUser);
+      
+      // Check if user has an active match
+      if (parsedUser.email) {
+        const activeMatch = getActiveMatch(parsedUser.email);
+        setHasActiveMatch(!!activeMatch);
+      }
     } catch (error) {
       console.error("Error parsing user data:", error);
       toast.error("Error loading your profile");
@@ -82,9 +90,15 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           
           <div className="hidden md:flex items-center gap-4 text-white">
             <div className="text-right">
-              <p className="text-sm opacity-80">{t('welcome')}</p>
+              <p className="text-sm opacity-80">{hasActiveMatch ? t('welcome') : "Not Connected"}</p>
               <p className="font-medium">
-                {userData.name} & {userData.partnerName}
+                {hasActiveMatch ? (
+                  <>
+                    {userData.name} & {userData.partnerName}
+                  </>
+                ) : (
+                  userData.name
+                )}
               </p>
             </div>
             <Button 
