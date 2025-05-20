@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -120,8 +119,6 @@ const AuthForm = () => {
         name: formData.name || "",
         email: formData.email,
         passwordHash: formData.password, // In a real app, this would be hashed
-        partnerName: formData.partnerName || undefined,
-        anniversaryDate: formData.anniversaryDate || undefined,
         createdAt: new Date().toISOString()
       };
       
@@ -132,9 +129,9 @@ const AuthForm = () => {
       // Set as current user
       localStorage.setItem("eralove-user", JSON.stringify({
         name: newUser.name,
-        partnerName: newUser.partnerName || "",
+        partnerName: "",
         email: newUser.email,
-        anniversaryDate: newUser.anniversaryDate || ""
+        anniversaryDate: ""
       }));
       
       toast.success(t('registrationSuccess'));
@@ -216,17 +213,6 @@ const AuthForm = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="partnerName">Partner's Name</Label>
-                <Input
-                  id="partnerName"
-                  name="partnerName"
-                  placeholder="Your partner's name"
-                  required
-                  value={formData.partnerName}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="email-register">Email</Label>
                 <Input
                   id="email-register"
@@ -262,17 +248,9 @@ const AuthForm = () => {
                   onChange={handleChange}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="anniversaryDate">Anniversary Date</Label>
-                <Input
-                  id="anniversaryDate"
-                  name="anniversaryDate"
-                  type="date"
-                  required
-                  value={formData.anniversaryDate}
-                  onChange={handleChange}
-                />
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Partner name and anniversary date can be set after connecting with your partner.
+              </p>
             </CardContent>
             <CardFooter>
               <Button type="submit" className="w-full love-button" disabled={isLoading}>
