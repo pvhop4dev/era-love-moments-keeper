@@ -128,6 +128,13 @@ const MatchRequestModal = ({
       toast.error(t('errorDecliningRequest'));
     }
   };
+
+  const handleIgnoreRequest = () => {
+    onClose();
+    if (onRequestHandled) {
+      onRequestHandled();
+    }
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -210,13 +217,20 @@ const MatchRequestModal = ({
               {t('sendRequest')}
             </Button>
           ) : (
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button 
                 variant="outline" 
                 onClick={handleDeclineRequest} 
                 className="border-red-200 hover:bg-red-50 text-red-600"
               >
                 {t('decline')}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleIgnoreRequest} 
+                className="border-gray-200 hover:bg-gray-50"
+              >
+                {t('ignore')}
               </Button>
               <Button 
                 onClick={handleAcceptRequest} 
