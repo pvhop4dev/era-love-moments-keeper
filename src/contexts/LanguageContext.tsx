@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type TranslationKey = 
@@ -74,7 +73,8 @@ type TranslationKey =
   | 'delete'
   | 'update'
   | 'create'
-  | 'event';
+  | 'event'
+  | 'ignore';
 
 type Translations = {
   [key in TranslationKey]: string;
@@ -119,6 +119,7 @@ const translations: Record<Languages, Translations> = {
     sendRequest: 'Send Request',
     decline: 'Decline',
     accept: 'Accept',
+    ignore: 'Ignore',
     pendingRequests: 'Pending Requests',
     emailRequired: 'Email is required',
     invalidEmail: 'Please enter a valid email',
@@ -195,6 +196,7 @@ const translations: Record<Languages, Translations> = {
     sendRequest: 'Enviar Solicitud',
     decline: 'Rechazar',
     accept: 'Aceptar',
+    ignore: 'Ignorar',
     pendingRequests: 'Solicitudes Pendientes',
     emailRequired: 'El email es requerido',
     invalidEmail: 'Ingresa un email válido',
@@ -271,6 +273,7 @@ const translations: Record<Languages, Translations> = {
     sendRequest: 'Envoyer la Demande',
     decline: 'Refuser',
     accept: 'Accepter',
+    ignore: 'Ignorer',
     pendingRequests: 'Demandes en Attente',
     emailRequired: 'L\'email est requis',
     invalidEmail: 'Veuillez saisir un email valide',
@@ -374,4 +377,3 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     </LanguageContext.Provider>
   );
 };
-
