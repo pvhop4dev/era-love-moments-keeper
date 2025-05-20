@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoveCounter from "@/components/dashboard/LoveCounter";
@@ -145,7 +144,10 @@ const Dashboard = () => {
   }, []);
 
   const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
+    // Only allow date selection if user has active match
+    if (hasActiveMatch) {
+      setSelectedDate(date);
+    }
   };
 
   const handleAddEvent = () => {
@@ -208,6 +210,11 @@ const Dashboard = () => {
 
   // Get all dates that have events or photos for calendar highlighting
   const getDaysWithContent = () => {
+    // Only show event/photo markers if user has active match
+    if (!hasActiveMatch) {
+      return [];
+    }
+    
     const allDates = new Set();
     events.forEach(event => allDates.add(event.date));
     photos.forEach(photo => allDates.add(photo.date));
@@ -273,47 +280,31 @@ const Dashboard = () => {
         {/* Second Row - Calendar and Day Details */}
         <div className="md:col-span-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Calendar - Show blank if not paired */}
+            {/* Calendar - Show monthly calendar for both paired and unpaired users */}
             <div className="md:col-span-2">
-              {hasActiveMatch ? (
-                <>
-                  <Calendar 
-                    onDateClick={handleDateClick} 
-                    events={getDaysWithContent()}
-                    selectedDate={selectedDate}
+              <Calendar 
+                onDateClick={handleDateClick} 
+                events={getDaysWithContent()}
+                selectedDate={selectedDate}
+              />
+              
+              {/* Recent Photos Album */}
+              <div className="mt-6">
+                <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
+                  <ImageIcon className="h-5 w-5 text-love-500" />
+                  {t('recentPhotos')}
+                </h2>
+                {hasActiveMatch ? (
+                  <PhotoAlbum 
+                    photos={photos.slice(0, 4)}
+                    onSelectPhoto={handleSelectPhoto}
                   />
-                  
-                  {/* Recent Photos Album */}
-                  <div className="mt-6">
-                    <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
-                      <ImageIcon className="h-5 w-5 text-love-500" />
-                      {t('recentPhotos')}
-                    </h2>
-                    <PhotoAlbum 
-                      photos={photos.slice(0, 4)}
-                      onSelectPhoto={handleSelectPhoto}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Card className="love-card h-auto">
-                    <div className="p-4 text-center text-muted-foreground">
-                      <CalendarIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p>Connect with your partner to start your calendar</p>
-                    </div>
+                ) : (
+                  <Card className="p-6 text-center text-muted-foreground">
+                    <p>Connect with your partner to add photos together</p>
                   </Card>
-                  <div className="mt-6">
-                    <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
-                      <ImageIcon className="h-5 w-5 text-love-500" />
-                      {t('recentPhotos')}
-                    </h2>
-                    <Card className="p-6 text-center text-muted-foreground">
-                      <p>Connect with your partner to add photos together</p>
-                    </Card>
-                  </div>
-                </>
-              )}
+                )}
+              </div>
             </div>
             
             {/* Day Details Sidebar */}
@@ -335,7 +326,7 @@ const Dashboard = () => {
                     {hasActiveMatch ? (
                       <p>{t('selectDayToSeeDetails')}</p>
                     ) : (
-                      <p>Connect with your partner to see daily details</p>
+                      <p>Connect with your partner to add events and photos</p>
                     )}
                   </div>
                 </Card>
@@ -345,23 +336,26 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Event Modal */}
-      <EventModal
-        isOpen={isEventModalOpen}
-        onClose={() => setIsEventModalOpen(false)}
-        selectedDate={selectedDate}
-        onSave={handleSaveEvent}
-        event={selectedEvent}
-      />
-      
-      {/* Photo Modal */}
-      <PhotoModal
-        isOpen={isPhotoModalOpen}
-        onClose={() => setIsPhotoModalOpen(false)}
-        selectedDate={selectedDate}
-        onSave={handleSavePhoto}
-        photo={selectedPhoto}
-      />
+      {/* Show modals only if the user has an active match */}
+      {hasActiveMatch && (
+        <>
+          <EventModal
+            isOpen={isEventModalOpen}
+            onClose={() => setIsEventModalOpen(false)}
+            selectedDate={selectedDate}
+            onSave={handleSaveEvent}
+            event={selectedEvent}
+          />
+          
+          <PhotoModal
+            isOpen={isPhotoModalOpen}
+            onClose={() => setIsPhotoModalOpen(false)}
+            selectedDate={selectedDate}
+            onSave={handleSavePhoto}
+            photo={selectedPhoto}
+          />
+        </>
+      )}
       
       {/* Settings Modal */}
       <SettingsModal
