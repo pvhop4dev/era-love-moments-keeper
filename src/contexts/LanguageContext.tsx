@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type TranslationKey = 
@@ -30,6 +31,7 @@ type TranslationKey =
   | 'sendRequest'
   | 'decline'
   | 'accept'
+  | 'ignore'
   | 'pendingRequests'
   | 'emailRequired'
   | 'invalidEmail'
@@ -74,6 +76,7 @@ type TranslationKey =
   | 'update'
   | 'create'
   | 'event'
+  | 'privateMessages'
   | 'ignore';
 
 type Translations = {
@@ -163,7 +166,8 @@ const translations: Record<Languages, Translations> = {
     delete: 'Delete',
     update: 'Update',
     create: 'Create',
-    event: 'event'
+    event: 'event',
+    privateMessages: 'Private Messages'
   },
   
   es: {
@@ -240,7 +244,8 @@ const translations: Record<Languages, Translations> = {
     delete: 'Eliminar',
     update: 'Actualizar',
     create: 'Crear',
-    event: 'evento'
+    event: 'evento',
+    privateMessages: 'Mensajes Privados'
   },
   
   fr: {
@@ -317,7 +322,8 @@ const translations: Record<Languages, Translations> = {
     delete: 'Supprimer',
     update: 'Mettre à jour',
     create: 'Créer',
-    event: 'événement'
+    event: 'événement',
+    privateMessages: 'Messages Privés'
   }
 };
 
