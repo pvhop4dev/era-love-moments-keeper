@@ -9,6 +9,7 @@ import PhotoModal, { PhotoData } from "@/components/photos/PhotoModal";
 import PhotoAlbum from "@/components/albums/PhotoAlbum";
 import SettingsModal from "@/components/settings/SettingsModal";
 import MatchNotification from "@/components/match/MatchNotification";
+import MessagesSection from "@/components/messages/MessagesSection";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Settings, Image as ImageIcon, Calendar as CalendarIcon } from "lucide-react";
@@ -293,6 +294,18 @@ const Dashboard = () => {
         <div>
           <FengShuiInfo />
         </div>
+        
+        {/* Messages Section - Only show if user has an active match */}
+        {hasActiveMatch && partnerDetails && (
+          <div className="md:col-span-3 mt-2 mb-6">
+            <MessagesSection
+              userEmail={userData.email}
+              userName={userData.name}
+              partnerEmail={partnerDetails.email}
+              partnerName={partnerDetails.name}
+            />
+          </div>
+        )}
         
         {/* Second Row - Calendar and Day Details */}
         <div className="md:col-span-3">
