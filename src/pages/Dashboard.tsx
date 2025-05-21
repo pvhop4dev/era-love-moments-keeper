@@ -238,6 +238,23 @@ const Dashboard = () => {
     return photos.filter(photo => photo.date === dateStr);
   };
 
+  const handleUnpair = () => {
+    // Update local state
+    setHasActiveMatch(false);
+    setPartnerDetails(null);
+    
+    // Update userData
+    setUserData(prev => {
+      const updated = { ...prev };
+      delete updated.partnerName;
+      delete updated.anniversaryDate;
+      return updated;
+    });
+    
+    // Close the sidebar if it's open
+    setSelectedDate(null);
+  };
+
   return (
     <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
@@ -357,10 +374,12 @@ const Dashboard = () => {
         </>
       )}
       
-      {/* Settings Modal */}
+      {/* Settings Modal with unpair functionality */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+        userEmail={userData.email}
+        onUnpair={handleUnpair}
       />
     </DashboardLayout>
   );

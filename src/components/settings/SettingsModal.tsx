@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -6,11 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Wallpaper, Languages, Upload } from "lucide-react";
+import { Wallpaper, Languages, Upload, Unlink } from "lucide-react";
+import { getActiveMatch } from "@/utils/matchUtils";
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  userEmail?: string;
+  onUnpair?: () => void;
 }
 
 interface Settings {
@@ -18,13 +20,14 @@ interface Settings {
   language: string;
 }
 
-const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
+const SettingsModal = ({ isOpen, onClose, userEmail, onUnpair }: SettingsModalProps) => {
   const [settings, setSettings] = useState<Settings>({
     backgroundImage: "",
     language: "en",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [hasActiveMatch, setHasActiveMatch] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -44,7 +47,13 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         console.error("Error parsing settings:", error);
       }
     }
-  }, []);
+
+    // Check if user has an active match
+    if (userEmail) {
+      const activeMatch = getActiveMatch(userEmail);
+      setHasActiveMatch(!!activeMatch);
+    }
+  }, [userEmail]);
 
   useEffect(() => {
     // Clean up object URLs on unmount
@@ -150,6 +159,77 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     }
   };
 
+  const handleUnpair = () => {
+    if (!userEmail) return;
+    
+    try {
+      // Get all users
+      const allUsers = JSON.parse(localStorage.getItem("eralove-users") || "[]");
+      
+      // Get all match requests
+      const allRequests = JSON.parse(localStorage.getItem("eralove-match-requests") || "[]");
+      
+      // Find the active match
+      const activeMatch = allRequests.find(
+        (req) => 
+          req.status === 'accepted' && 
+          (req.requesterEmail === userEmail || req.recipientEmail === userEmail)
+      );
+      
+      if (activeMatch) {
+        // Update match status to "unpaired"
+        const updatedRequests = allRequests.map(req => {
+          if (req.id === activeMatch.id) {
+            return {
+              ...req,
+              status: 'unpaired'
+            };
+          }
+          return req;
+        });
+        
+        localStorage.setItem("eralove-match-requests", JSON.stringify(updatedRequests));
+        
+        // Find the current user and update their partner information
+        const currentUser = allUsers.find(user => user.email === userEmail);
+        if (currentUser) {
+          delete currentUser.partnerName;
+          delete currentUser.anniversaryDate;
+          localStorage.setItem("eralove-users", JSON.stringify(allUsers));
+          
+          // Also update current session
+          const sessionUser = JSON.parse(localStorage.getItem("eralove-user") || "{}");
+          if (sessionUser.email === userEmail) {
+            delete sessionUser.partnerName;
+            delete sessionUser.anniversaryDate;
+            localStorage.setItem("eralove-user", JSON.stringify(sessionUser));
+          }
+        }
+        
+        // Find the partner user and update their partner information
+        const partnerEmail = activeMatch.requesterEmail === userEmail 
+          ? activeMatch.recipientEmail 
+          : activeMatch.requesterEmail;
+        
+        const partnerUser = allUsers.find(user => user.email === partnerEmail);
+        if (partnerUser) {
+          delete partnerUser.partnerName;
+          delete partnerUser.anniversaryDate;
+          localStorage.setItem("eralove-users", JSON.stringify(allUsers));
+        }
+        
+        toast.success("You have been unpaired successfully");
+        if (onUnpair) {
+          onUnpair();
+        }
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error unpairing:", error);
+      toast.error("Failed to unpair. Please try again.");
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
@@ -157,6 +237,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           <DialogTitle className="text-love-700">App Settings</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          {/* Background Image Settings */}
           <div className="grid gap-2">
             <Label className="flex items-center gap-2">
               <Wallpaper className="h-4 w-4" /> Background Image
@@ -214,6 +295,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </div>
           </div>
           
+          {/* Language Settings */}
           <div className="grid gap-2">
             <Label htmlFor="language" className="flex items-center gap-2">
               <Languages className="h-4 w-4" /> Language
@@ -234,6 +316,27 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Unpair Option - Only show if user has an active match */}
+          {hasActiveMatch && (
+            <div className="grid gap-2 mt-4 pt-4 border-t border-border">
+              <Label className="flex items-center gap-2 text-destructive">
+                <Unlink className="h-4 w-4" /> Unpair from Partner
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                This will remove your connection with your current partner. 
+                Both of you will return to unpaired state. This action cannot be undone.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={handleUnpair}
+                className="mt-2"
+              >
+                <Unlink className="h-4 w-4 mr-2" />
+                Unpair from Partner
+              </Button>
+            </div>
+          )}
         </div>
         <DialogFooter className="flex gap-2">
           <Button 

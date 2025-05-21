@@ -11,7 +11,7 @@ export interface MatchRequest {
   requesterName: string;
   requesterEmail: string;
   recipientEmail: string;
-  status: 'pending' | 'accepted' | 'declined';
+  status: 'pending' | 'accepted' | 'declined' | 'unpaired';
   createdAt: string;
   acceptedAt?: string;
   relationshipStartDate?: string;
