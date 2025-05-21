@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,11 @@ interface User {
   createdAt: string;
 }
 
-const AuthForm = () => {
+interface AuthFormProps {
+  defaultTab?: "login" | "register";
+}
+
+const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
@@ -145,7 +150,7 @@ const AuthForm = () => {
   };
 
   return (
-    <Tabs defaultValue="login" className="w-[400px] max-w-full">
+    <Tabs defaultValue={defaultTab} className="w-[400px] max-w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="login">Login</TabsTrigger>
         <TabsTrigger value="register">Register</TabsTrigger>
