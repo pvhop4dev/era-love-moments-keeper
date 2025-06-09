@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -13,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Calendar, Clock, Trash } from "lucide-react";
+import { Calendar, Clock, Trash, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface EventModalProps {
@@ -31,7 +30,8 @@ export interface EventData {
   date: string;
   time: string;
   location: string;
-  images: string[];  // Keeping for backward compatibility
+  coordinates?: { lat: number; lng: number };
+  images: string[];
 }
 
 const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModalProps) => {
@@ -43,8 +43,10 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
     date: "",
     time: "",
     location: "",
+    coordinates: undefined,
     images: [],
   });
+  const [isGeocodingLocation, setIsGeocodingLocation] = useState(false);
 
   useEffect(() => {
     if (selectedDate) {
@@ -72,6 +74,48 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
     });
   };
 
+  const geocodeLocation = async (location: string) => {
+    if (!location.trim()) return;
+    
+    setIsGeocodingLocation(true);
+    try {
+      // Use a free geocoding service or ask user to input their own API key
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`
+      );
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const coordinates = {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+        setEventData(prev => ({ ...prev, coordinates }));
+        toast.success("Location coordinates found!");
+      } else {
+        toast.error("Location not found. Please try a more specific address.");
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      toast.error("Failed to find location coordinates.");
+    } finally {
+      setIsGeocodingLocation(false);
+    }
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const location = e.target.value;
+    setEventData(prev => ({ ...prev, location }));
+    
+    // Auto-geocode when user stops typing
+    if (location.trim()) {
+      const timeoutId = setTimeout(() => {
+        geocodeLocation(location);
+      }, 1000);
+      return () => clearTimeout(timeoutId);
+    }
+  };
+
   const handleSave = () => {
     if (!eventData.title) {
       toast.error("Please enter an event title");
@@ -80,7 +124,7 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
 
     const finalEventData = {
       ...eventData,
-      images: [], // Keep empty array for backward compatibility
+      images: [],
     };
 
     onSave(finalEventData);
@@ -160,13 +204,27 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
           </div>
           <div className="grid gap-2">
             <Label htmlFor="location">{t('location')}</Label>
-            <Input
-              id="location"
-              name="location"
-              value={eventData.location}
-              onChange={handleChange}
-              placeholder={t('locationPlaceholder')}
-            />
+            <div className="relative">
+              <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="location"
+                name="location"
+                value={eventData.location}
+                onChange={handleLocationChange}
+                placeholder={t('locationPlaceholder')}
+                className="pl-8"
+              />
+              {isGeocodingLocation && (
+                <div className="absolute right-2 top-2.5">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-love-500 border-t-transparent"></div>
+                </div>
+              )}
+            </div>
+            {eventData.coordinates && (
+              <p className="text-xs text-muted-foreground">
+                Coordinates: {eventData.coordinates.lat.toFixed(4)}, {eventData.coordinates.lng.toFixed(4)}
+              </p>
+            )}
           </div>
         </div>
         <DialogFooter className="flex gap-2">

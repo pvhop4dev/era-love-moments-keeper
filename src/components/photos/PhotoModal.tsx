@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
+import { Upload, MapPin } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -16,6 +15,8 @@ export interface PhotoData {
   description: string;
   date: string;
   imageUrl: string;
+  location?: string;
+  coordinates?: { lat: number; lng: number };
 }
 
 interface PhotoModalProps {
@@ -30,15 +31,20 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
   const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | undefined>(undefined);
   const [imageUrl, setImageUrl] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isGeocodingLocation, setIsGeocodingLocation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     if (photo) {
       setTitle(photo.title);
       setDescription(photo.description);
+      setLocation(photo.location || "");
+      setCoordinates(photo.coordinates);
       setImageUrl(photo.imageUrl);
       setPreviewUrl(photo.imageUrl);
     } else {
@@ -58,6 +64,8 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
   const resetForm = () => {
     setTitle("");
     setDescription("");
+    setLocation("");
+    setCoordinates(undefined);
     setImageUrl("");
     setPreviewUrl(null);
     setSelectedFile(null);
@@ -83,6 +91,47 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
       
       // Clear the input URL since we're using a file now
       setImageUrl("");
+    }
+  };
+
+  const geocodeLocation = async (locationText: string) => {
+    if (!locationText.trim()) return;
+    
+    setIsGeocodingLocation(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}&limit=1`
+      );
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const coords = {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+        setCoordinates(coords);
+        toast.success("Location coordinates found!");
+      } else {
+        toast.error("Location not found. Please try a more specific address.");
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      toast.error("Failed to find location coordinates.");
+    } finally {
+      setIsGeocodingLocation(false);
+    }
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const locationValue = e.target.value;
+    setLocation(locationValue);
+    
+    // Auto-geocode when user stops typing
+    if (locationValue.trim()) {
+      const timeoutId = setTimeout(() => {
+        geocodeLocation(locationValue);
+      }, 1000);
+      return () => clearTimeout(timeoutId);
     }
   };
 
@@ -134,7 +183,9 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
         title,
         description,
         date: formattedDate,
-        imageUrl: finalImageUrl
+        imageUrl: finalImageUrl,
+        location: location || undefined,
+        coordinates: coordinates || undefined
       };
       
       onSave(photoData);
@@ -185,6 +236,30 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('enterDescription')}
             />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="location">Location (Optional)</Label>
+            <div className="relative">
+              <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="location"
+                value={location}
+                onChange={handleLocationChange}
+                placeholder="Enter location where photo was taken"
+                className="pl-8"
+              />
+              {isGeocodingLocation && (
+                <div className="absolute right-2 top-2.5">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-love-500 border-t-transparent"></div>
+                </div>
+              )}
+            </div>
+            {coordinates && (
+              <p className="text-xs text-muted-foreground">
+                Coordinates: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
+              </p>
+            )}
           </div>
           
           <div className="grid gap-2">

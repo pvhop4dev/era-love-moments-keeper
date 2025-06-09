@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoveCounter from "@/components/dashboard/LoveCounter";
@@ -11,9 +10,10 @@ import PhotoAlbum from "@/components/albums/PhotoAlbum";
 import SettingsModal from "@/components/settings/SettingsModal";
 import MatchNotification from "@/components/match/MatchNotification";
 import MessagesSection from "@/components/messages/MessagesSection";
+import LoveMap from "@/components/map/LoveMap";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Settings, Image as ImageIcon, Calendar as CalendarIcon } from "lucide-react";
+import { Settings, Image as ImageIcon, Calendar as CalendarIcon, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getActiveMatch, getPartnerDetails } from "@/utils/matchUtils";
 
@@ -376,6 +376,28 @@ const Dashboard = () => {
                 </Card>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Third Row - Love Map */}
+        <div className="md:col-span-3">
+          <div className="mt-6">
+            <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
+              <MapPin className="h-5 w-5 text-love-500" />
+              Love Map
+            </h2>
+            {hasActiveMatch ? (
+              <LoveMap
+                events={events}
+                photos={photos}
+                onEventClick={handleSelectEvent}
+                onPhotoClick={handleSelectPhoto}
+              />
+            ) : (
+              <Card className="p-6 text-center text-muted-foreground">
+                <p>Connect with your partner to see your love map with shared locations</p>
+              </Card>
+            )}
           </div>
         </div>
       </div>
