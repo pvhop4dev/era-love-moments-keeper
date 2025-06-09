@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoveCounter from "@/components/dashboard/LoveCounter";
@@ -48,8 +49,10 @@ const Dashboard = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUserData({
-        ...parsedUser,
+        name: parsedUser.name || "",
+        partnerName: parsedUser.partnerName || "",
         email: parsedUser.email || "",
+        anniversaryDate: parsedUser.anniversaryDate || "",
         dateOfBirth: parsedUser.dateOfBirth || ""
       });
       
@@ -61,7 +64,14 @@ const Dashboard = () => {
         // If there's an active match, get partner details
         if (activeMatch) {
           const partner = getPartnerDetails(parsedUser.email);
-          setPartnerDetails(partner);
+          if (partner) {
+            setPartnerDetails({
+              name: partner.name,
+              email: partner.email,
+              anniversaryDate: partner.anniversaryDate,
+              dateOfBirth: "" // Default empty string for partner's dateOfBirth
+            });
+          }
         }
       }
     }
@@ -248,12 +258,13 @@ const Dashboard = () => {
     setPartnerDetails(null);
     
     // Update userData
-    setUserData(prev => {
-      const updated = { ...prev };
-      delete updated.partnerName;
-      delete updated.anniversaryDate;
-      return updated;
-    });
+    setUserData(prev => ({
+      name: prev.name,
+      email: prev.email,
+      dateOfBirth: prev.dateOfBirth,
+      partnerName: "",
+      anniversaryDate: ""
+    }));
     
     // Close the sidebar if it's open
     setSelectedDate(null);
