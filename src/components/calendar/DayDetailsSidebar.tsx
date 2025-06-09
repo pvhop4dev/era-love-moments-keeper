@@ -1,23 +1,24 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar as CalendarIcon, Image } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Calendar, Image as ImageIcon, MapPin, Clock } from "lucide-react";
 import { EventData } from "@/components/events/EventModal";
 import { PhotoData } from "@/components/photos/PhotoModal";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import CalendarSuggestions from "./CalendarSuggestions";
+import AffiliateProducts from "@/components/affiliate/AffiliateProducts";
 
 interface DayDetailsSidebarProps {
-  selectedDate: Date | null;
+  selectedDate: Date;
   eventsForDay: EventData[];
   photosForDay: PhotoData[];
   onAddEvent: () => void;
   onAddPhoto: () => void;
   onSelectEvent: (event: EventData) => void;
   onSelectPhoto: (photo: PhotoData) => void;
+  userDateOfBirth?: string;
+  partnerDateOfBirth?: string;
+  anniversaryDate?: string;
 }
 
 const DayDetailsSidebar = ({
@@ -28,132 +29,132 @@ const DayDetailsSidebar = ({
   onAddPhoto,
   onSelectEvent,
   onSelectPhoto,
+  userDateOfBirth,
+  partnerDateOfBirth,
+  anniversaryDate
 }: DayDetailsSidebarProps) => {
-  const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState("events");
-
-  if (!selectedDate) return null;
-
-  const formattedDate = selectedDate.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-love-500" />
-          {formattedDate}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pb-4">
-        <Tabs
-          defaultValue="events"
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-2 mb-3">
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              {t("events")} {eventsForDay.length > 0 && `(${eventsForDay.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="photos" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              {t("photos")} {photosForDay.length > 0 && `(${photosForDay.length})`}
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="events" className="space-y-3">
-            <Button
-              onClick={onAddEvent}
-              className="love-button w-full flex items-center gap-2 py-1.5"
-              size="sm"
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-love-500" />
+            {formatDate(selectedDate)}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex gap-2">
+            <Button 
+              onClick={onAddEvent} 
+              className="flex-1 love-button text-sm h-8"
             >
-              <PlusCircle className="h-4 w-4" />
-              {t("addEvent")}
+              <Plus className="h-3 w-3 mr-1" />
+              Add Event
             </Button>
-            
-            {eventsForDay.length > 0 ? (
-              <ScrollArea className="h-[250px] pr-2">
-                <div className="space-y-2">
-                  {eventsForDay.map((event) => (
-                    <Card
-                      key={event.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => onSelectEvent(event)}
-                    >
-                      <CardContent className="p-3">
-                        <h3 className="font-medium text-sm">{event.title}</h3>
-                        <p className="text-xs mt-1">
-                          {event.time} • {event.location}
-                        </p>
-                        <p className="text-xs mt-1 text-muted-foreground line-clamp-1">
-                          {event.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </ScrollArea>
-            ) : (
-              <p className="text-center text-muted-foreground py-4 text-sm">
-                {t("noEventsForThisDay")}
-              </p>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="photos" className="space-y-3">
-            <Button
-              onClick={onAddPhoto}
-              className="love-button w-full flex items-center gap-2 py-1.5"
-              size="sm"
+            <Button 
+              onClick={onAddPhoto} 
+              variant="outline" 
+              className="flex-1 text-sm h-8"
             >
-              <PlusCircle className="h-4 w-4" />
-              {t("addPhoto")}
+              <Plus className="h-3 w-3 mr-1" />
+              Add Photo
             </Button>
-            
-            {photosForDay.length > 0 ? (
-              <ScrollArea className="h-[250px] pr-2">
-                <div className="grid grid-cols-1 gap-3">
-                  {photosForDay.map((photo) => (
-                    <div
-                      key={photo.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow bg-white rounded-lg overflow-hidden border"
-                      onClick={() => onSelectPhoto(photo)}
-                    >
-                      <AspectRatio ratio={16 / 9}>
-                        <img
-                          src={photo.imageUrl}
-                          alt={photo.title}
-                          className="object-cover w-full h-full"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://via.placeholder.com/400x300?text=Image+Not+Found";
-                          }}
-                        />
-                      </AspectRatio>
-                      <div className="p-2">
-                        <h3 className="font-medium text-sm line-clamp-1">{photo.title}</h3>
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {photo.description}
-                        </p>
-                      </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Events for this day */}
+      {eventsForDay.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Events</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {eventsForDay.map((event) => (
+              <div
+                key={event.id}
+                onClick={() => onSelectEvent(event)}
+                className="p-2 border rounded-lg cursor-pointer hover:bg-love-50 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm">{event.title}</h4>
+                    {event.description && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {event.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                      {event.time && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {event.time}
+                        </div>
+                      )}
+                      {event.location && (
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {event.location}
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </ScrollArea>
-            ) : (
-              <p className="text-center text-muted-foreground py-4 text-sm">
-                {t("noPhotosForThisDay")}
-              </p>
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Photos for this day */}
+      {photosForDay.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Photos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-2">
+              {photosForDay.map((photo) => (
+                <div
+                  key={photo.id}
+                  onClick={() => onSelectPhoto(photo)}
+                  className="relative cursor-pointer group"
+                >
+                  <img
+                    src={photo.imageUrl}
+                    alt={photo.title}
+                    className="w-full h-20 object-cover rounded-lg group-hover:opacity-80 transition-opacity"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
+                    <ImageIcon className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Calendar Suggestions */}
+      <CalendarSuggestions
+        selectedDate={selectedDate}
+        userDateOfBirth={userDateOfBirth}
+        partnerDateOfBirth={partnerDateOfBirth}
+        anniversaryDate={anniversaryDate}
+      />
+
+      {/* Affiliate Products */}
+      <AffiliateProducts category="general" limit={2} />
+    </div>
   );
 };
 

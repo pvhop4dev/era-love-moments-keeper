@@ -23,6 +23,7 @@ const Dashboard = () => {
     partnerName: "",
     email: "",
     anniversaryDate: "",
+    dateOfBirth: "",
   });
   
   const [events, setEvents] = useState<EventData[]>([]);
@@ -38,6 +39,7 @@ const Dashboard = () => {
     name: string;
     email: string;
     anniversaryDate: string;
+    dateOfBirth: string;
   } | null>(null);
   
   useEffect(() => {
@@ -47,7 +49,8 @@ const Dashboard = () => {
       const parsedUser = JSON.parse(storedUser);
       setUserData({
         ...parsedUser,
-        email: parsedUser.email || ""
+        email: parsedUser.email || "",
+        dateOfBirth: parsedUser.dateOfBirth || ""
       });
       
       // Check if user has an active match
@@ -304,10 +307,10 @@ const Dashboard = () => {
           <FengShuiInfo />
         </div>
         
-        {/* Second Row - Calendar and Day Details - Remove the old messages section */}
+        {/* Second Row - Calendar and Day Details */}
         <div className="md:col-span-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Calendar - Show monthly calendar for both paired and unpaired users */}
+            {/* Calendar */}
             <div className="md:col-span-2">
               <Calendar 
                 onDateClick={handleDateClick} 
@@ -345,6 +348,9 @@ const Dashboard = () => {
                   onAddPhoto={handleAddPhoto}
                   onSelectEvent={handleSelectEvent}
                   onSelectPhoto={handleSelectPhoto}
+                  userDateOfBirth={userData.dateOfBirth}
+                  partnerDateOfBirth={partnerDetails?.dateOfBirth}
+                  anniversaryDate={hasActiveMatch ? partnerDetails?.anniversaryDate || userData.anniversaryDate : undefined}
                 />
               ) : (
                 <Card className="h-full flex items-center justify-center p-6">

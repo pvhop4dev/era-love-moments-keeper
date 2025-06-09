@@ -17,6 +17,7 @@ interface FormData {
   password: string;
   confirmPassword?: string;
   anniversaryDate?: string;
+  dateOfBirth?: string;
 }
 
 interface User {
@@ -26,6 +27,7 @@ interface User {
   email: string;
   passwordHash: string; // In a real app, this would be a hashed password
   anniversaryDate?: string;
+  dateOfBirth?: string;
   createdAt: string;
 }
 
@@ -43,6 +45,7 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     password: "",
     confirmPassword: "",
     anniversaryDate: "",
+    dateOfBirth: "",
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -83,7 +86,8 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
         name: user.name,
         partnerName: user.partnerName || "",
         email: user.email,
-        anniversaryDate: user.anniversaryDate || ""
+        anniversaryDate: user.anniversaryDate || "",
+        dateOfBirth: user.dateOfBirth || ""
       }));
       
       toast.success(t('loginSuccess'));
@@ -124,6 +128,7 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
         name: formData.name || "",
         email: formData.email,
         passwordHash: formData.password, // In a real app, this would be hashed
+        dateOfBirth: formData.dateOfBirth,
         createdAt: new Date().toISOString()
       };
       
@@ -136,7 +141,8 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
         name: newUser.name,
         partnerName: "",
         email: newUser.email,
-        anniversaryDate: ""
+        anniversaryDate: "",
+        dateOfBirth: newUser.dateOfBirth || ""
       }));
       
       toast.success(t('registrationSuccess'));
@@ -214,6 +220,17 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
                   placeholder="Your name"
                   required
                   value={formData.name}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Input
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  type="date"
+                  required
+                  value={formData.dateOfBirth}
                   onChange={handleChange}
                 />
               </div>
