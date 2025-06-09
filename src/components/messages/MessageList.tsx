@@ -62,8 +62,8 @@ const MessageList = ({ messages, currentUserEmail, partnerName }: MessageListPro
   });
 
   return (
-    <ScrollArea className="h-[300px]" ref={scrollAreaRef}>
-      <div className="flex flex-col gap-3 p-2 pb-4">
+    <ScrollArea className="h-full" ref={scrollAreaRef}>
+      <div className="flex flex-col gap-3 p-4">
         {groupedMessages.length > 0 ? (
           groupedMessages.map((messageGroup, groupIndex) => {
             const isCurrentUser = messageGroup[0].sender === currentUserEmail;
@@ -73,7 +73,7 @@ const MessageList = ({ messages, currentUserEmail, partnerName }: MessageListPro
                 key={`group-${messageGroup[0].id}`}
                 className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-2`}
               >
-                <div className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} gap-2 max-w-[80%]`}>
+                <div className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} gap-2 max-w-[85%]`}>
                   {!isCurrentUser && (
                     <Avatar className="h-8 w-8 border border-love-100 mt-2 flex-shrink-0">
                       <div className="bg-couple text-white h-full w-full flex items-center justify-center text-sm font-medium">
@@ -93,16 +93,16 @@ const MessageList = ({ messages, currentUserEmail, partnerName }: MessageListPro
                             ${isCurrentUser 
                               ? 'bg-love-100 text-love-800 rounded-2xl rounded-tr-sm' 
                               : 'bg-couple-light text-couple-dark rounded-2xl rounded-tl-sm'}
-                            px-3 py-2 text-sm
+                            px-4 py-3 text-sm shadow-sm
                             ${!isLastInGroup && !isCurrentUser ? 'rounded-bl-2xl rounded-tl-sm' : ''}
                             ${!isLastInGroup && isCurrentUser ? 'rounded-br-2xl rounded-tr-sm' : ''}
                           `}
                         >
-                          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                          <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
                         </div>
                       );
                     })}
-                    <div className={`flex items-center text-xs gap-1 ${isCurrentUser ? 'justify-end mr-1' : 'ml-1'}`}>
+                    <div className={`flex items-center text-xs gap-1 mt-1 ${isCurrentUser ? 'justify-end mr-1' : 'ml-1'}`}>
                       <span className="text-muted-foreground">
                         {new Date(messageGroup[messageGroup.length-1].timestamp).toLocaleTimeString([], {
                           hour: '2-digit',
@@ -121,9 +121,11 @@ const MessageList = ({ messages, currentUserEmail, partnerName }: MessageListPro
             );
           })
         ) : (
-          <Card className="p-8 flex items-center justify-center">
-            <p className="text-muted-foreground text-center">No messages yet. Send your first message to your partner!</p>
-          </Card>
+          <div className="flex items-center justify-center h-full">
+            <Card className="p-6 mx-4">
+              <p className="text-muted-foreground text-center text-sm">No messages yet. Send your first message to your partner!</p>
+            </Card>
+          </div>
         )}
       </div>
     </ScrollArea>

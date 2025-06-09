@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import MessageList, { Message } from "./MessageList";
 import MessageInput from "./MessageInput";
 import { MessageSquare } from "lucide-react";
@@ -23,6 +23,7 @@ const MessagesSection = ({
 }: MessagesSectionProps) => {
   const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Load existing messages
   useEffect(() => {
@@ -91,22 +92,34 @@ const MessagesSection = ({
   };
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-love-500" />
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-love-500" />
           {t('privateMessages')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <MessageList 
-          messages={messages}
-          currentUserEmail={userEmail}
-          partnerName={partnerName}
-        />
-        <MessageInput onSendMessage={handleSendMessage} />
-      </CardContent>
-    </Card>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md w-full h-[600px] flex flex-col p-0">
+        <DialogHeader className="p-4 pb-2 border-b">
+          <DialogTitle className="text-lg flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-love-500" />
+            Chat with {partnerName}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-hidden">
+            <MessageList 
+              messages={messages}
+              currentUserEmail={userEmail}
+              partnerName={partnerName}
+            />
+          </div>
+          <div className="p-4 border-t">
+            <MessageInput onSendMessage={handleSendMessage} />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

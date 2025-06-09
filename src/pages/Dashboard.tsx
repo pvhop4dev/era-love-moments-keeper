@@ -271,6 +271,15 @@ const Dashboard = () => {
               userName={userData.name}
               hasMatch={hasActiveMatch}
             />
+            {/* Add Messages button here when user has active match */}
+            {hasActiveMatch && partnerDetails && (
+              <MessagesSection
+                userEmail={userData.email}
+                userName={userData.name}
+                partnerEmail={partnerDetails.email}
+                partnerName={partnerDetails.name}
+              />
+            )}
           </div>
         </div>
         <Button 
@@ -295,19 +304,7 @@ const Dashboard = () => {
           <FengShuiInfo />
         </div>
         
-        {/* Messages Section - Only show if user has an active match */}
-        {hasActiveMatch && partnerDetails && (
-          <div className="md:col-span-3 mt-2 mb-6">
-            <MessagesSection
-              userEmail={userData.email}
-              userName={userData.name}
-              partnerEmail={partnerDetails.email}
-              partnerName={partnerDetails.name}
-            />
-          </div>
-        )}
-        
-        {/* Second Row - Calendar and Day Details */}
+        {/* Second Row - Calendar and Day Details - Remove the old messages section */}
         <div className="md:col-span-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Calendar - Show monthly calendar for both paired and unpaired users */}
