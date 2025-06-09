@@ -6,14 +6,14 @@ import Calendar from "@/components/calendar/Calendar";
 import DayDetailsSidebar from "@/components/calendar/DayDetailsSidebar";
 import EventModal, { EventData } from "@/components/events/EventModal";
 import PhotoModal, { PhotoData } from "@/components/photos/PhotoModal";
-import PhotoAlbum from "@/components/albums/PhotoAlbum";
+import LoveIdeas from "@/components/suggestions/LoveIdeas";
 import SettingsModal from "@/components/settings/SettingsModal";
 import MatchNotification from "@/components/match/MatchNotification";
 import MessagesSection from "@/components/messages/MessagesSection";
 import LoveMap from "@/components/map/LoveMap";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Settings, Image as ImageIcon, Calendar as CalendarIcon, MapPin } from "lucide-react";
+import { Settings, Calendar as CalendarIcon, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getActiveMatch, getPartnerDetails } from "@/utils/matchUtils";
 
@@ -329,22 +329,9 @@ const Dashboard = () => {
                 selectedDate={selectedDate}
               />
               
-              {/* Recent Photos Album */}
+              {/* Love Ideas Section */}
               <div className="mt-6">
-                <h2 className="font-semibold text-xl flex items-center gap-2 mb-4">
-                  <ImageIcon className="h-5 w-5 text-love-500" />
-                  {t('recentPhotos')}
-                </h2>
-                {hasActiveMatch ? (
-                  <PhotoAlbum 
-                    photos={photos.slice(0, 4)}
-                    onSelectPhoto={handleSelectPhoto}
-                  />
-                ) : (
-                  <Card className="p-6 text-center text-muted-foreground">
-                    <p>Connect with your partner to add photos together</p>
-                  </Card>
-                )}
+                <LoveIdeas />
               </div>
             </div>
             
