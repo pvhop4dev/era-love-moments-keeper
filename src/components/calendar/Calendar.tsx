@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Heart, Circle } from "lucide-react";
 import { EventData } from "@/components/events/EventModal";
 import { PhotoData } from "@/components/photos/PhotoModal";
 
@@ -70,6 +70,21 @@ const Calendar = ({ onDateClick, events, selectedDate }: CalendarProps) => {
     return events.some(event => event.date === dateStr);
   };
 
+  const hasPhoto = (date: Date) => {
+    // Get photos from localStorage to check for photo indicators
+    const storedPhotos = localStorage.getItem("eralove-photos");
+    if (storedPhotos) {
+      try {
+        const photos = JSON.parse(storedPhotos);
+        const dateStr = date.toISOString().split("T")[0];
+        return photos.some((photo: any) => photo.date === dateStr);
+      } catch (error) {
+        return false;
+      }
+    }
+    return false;
+  };
+
   const isCurrentMonth = (date: Date) => {
     return date.getMonth() === currentDate.getMonth();
   };
@@ -123,7 +138,14 @@ const Calendar = ({ onDateClick, events, selectedDate }: CalendarProps) => {
               } ${isSelectedDate(day) ? 'calendar-day-selected' : ''} relative text-xs flex items-center justify-center h-6 w-6 rounded-full`}
             >
               {day.getDate()}
+              {/* Event indicator - small dot */}
               {hasEvent(day) && (
+                <Circle 
+                  className="absolute -top-0.5 -left-0.5 h-1.5 w-1.5 text-blue-500 fill-blue-500" 
+                />
+              )}
+              {/* Photo/Memory indicator - heart */}
+              {hasPhoto(day) && (
                 <Heart 
                   className="absolute -top-1 -right-1 h-2 w-2 text-love-500 heart-icon" 
                   fill="#FB7185" 
