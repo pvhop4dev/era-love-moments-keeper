@@ -14,6 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { ArrowRight, Heart, Calendar, ImageIcon, MessageSquare, Gift } from "lucide-react";
 import { useCallback } from "react";
 import { type CarouselApi } from "@/components/ui/carousel";
+import Eri from "@/components/mascot/Eri";
 
 const Welcome = () => {
   const { t } = useLanguage();
@@ -99,9 +100,16 @@ const Welcome = () => {
         <h1 className="text-4xl md:text-5xl font-bold text-love-700 mb-2">
           EraLove
         </h1>
-        <p className="text-lg text-love-600 max-w-md mx-auto">
+        <p className="text-lg text-love-600 max-w-md mx-auto mb-4">
           Preserve your precious moments and celebrate your love journey together
         </p>
+        {!showAuthForm && (
+          <Eri 
+            message="Welcome to EraLove! I'm Eri, your personal love messenger. I'll help you create and preserve beautiful memories with your special someone! ✨"
+            size="medium"
+            className="justify-center"
+          />
+        )}
       </div>
 
       {!showAuthForm ? (

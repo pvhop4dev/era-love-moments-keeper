@@ -7,6 +7,7 @@ import { MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Eri from "@/components/mascot/Eri";
 
 interface MessagesSectionProps {
   userEmail: string;
@@ -105,6 +106,12 @@ const MessagesSection = ({
             <MessageSquare className="h-5 w-5 text-love-500" />
             Chat with {partnerName}
           </DialogTitle>
+          <div className="mt-2">
+            <Eri 
+              message="I'm here to help you stay connected! Send sweet messages to keep the love flowing! 💕"
+              size="small"
+            />
+          </div>
         </DialogHeader>
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-hidden">

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Eri from "@/components/mascot/Eri";
 
 interface FormData {
   name?: string;
@@ -49,6 +49,7 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [currentTab, setCurrentTab] = useState(defaultTab);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -155,134 +156,150 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     setIsLoading(false);
   };
 
+  const getEriMessage = () => {
+    if (currentTab === "login") {
+      return "Welcome back! I'm so excited to see you again. Let's continue your love journey together! 💕";
+    } else {
+      return "Hi there! I'm Eri, your love messenger! I'll help you create beautiful memories and keep track of all your special moments together! ✨";
+    }
+  };
+
   return (
-    <Tabs defaultValue={defaultTab} className="w-[400px] max-w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="login">Login</TabsTrigger>
-        <TabsTrigger value="register">Register</TabsTrigger>
-      </TabsList>
+    <div className="space-y-4">
+      <Eri 
+        message={getEriMessage()}
+        size="medium"
+        className="justify-center"
+      />
       
-      <TabsContent value="login">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl text-center text-love-700">Welcome Back</CardTitle>
-            <CardDescription className="text-center">Enter your credentials to access your love journey</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleLogin}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full love-button" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="register">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl text-center text-love-700">Start Your Love Journey</CardTitle>
-            <CardDescription className="text-center">Create an account to keep track of your special moments</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleRegister}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Your Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Your name"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <Input
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  type="date"
-                  required
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email-register">Email</Label>
-                <Input
-                  id="email-register"
-                  name="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password-register">Password</Label>
-                <Input
-                  id="password-register"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Partner name and anniversary date can be set after connecting with your partner.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full love-button" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Register"}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </TabsContent>
-    </Tabs>
+      <Tabs defaultValue={defaultTab} className="w-[400px] max-w-full" onValueChange={setCurrentTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="login">Login</TabsTrigger>
+          <TabsTrigger value="register">Register</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="login">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl text-center text-love-700">Welcome Back</CardTitle>
+              <CardDescription className="text-center">Enter your credentials to access your love journey</CardDescription>
+            </CardHeader>
+            <form onSubmit={handleLogin}>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" className="w-full love-button" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Login"}
+                </Button>
+              </CardFooter>
+            </form>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="register">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl text-center text-love-700">Start Your Love Journey</CardTitle>
+              <CardDescription className="text-center">Create an account to keep track of your special moments</CardDescription>
+            </CardHeader>
+            <form onSubmit={handleRegister}>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Your Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Input
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    type="date"
+                    required
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email-register">Email</Label>
+                  <Input
+                    id="email-register"
+                    name="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password-register">Password</Label>
+                  <Input
+                    id="password-register"
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Partner name and anniversary date can be set after connecting with your partner.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" className="w-full love-button" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Register"}
+                </Button>
+              </CardFooter>
+            </form>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

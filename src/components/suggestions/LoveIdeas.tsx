@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin, Coffee, Tent, Plane, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Eri from "@/components/mascot/Eri";
 
 interface LoveIdea {
   id: string;
@@ -103,6 +103,12 @@ const LoveIdeas = ({ onSelectIdea }: LoveIdeasProps) => {
           <Heart className="h-5 w-5 text-love-500" />
           Love Ideas
         </CardTitle>
+        <div className="mt-3">
+          <Eri 
+            message="I've found some amazing places for you two! These spots are perfect for creating new memories together. Which one catches your eye? 😊"
+            size="small"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
