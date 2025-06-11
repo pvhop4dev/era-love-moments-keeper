@@ -58,6 +58,12 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     });
   };
 
+  const handleTabChange = (value: string) => {
+    if (value === "login" || value === "register") {
+      setCurrentTab(value);
+    }
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -172,7 +178,7 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
         className="justify-center"
       />
       
-      <Tabs defaultValue={defaultTab} className="w-[400px] max-w-full" onValueChange={setCurrentTab}>
+      <Tabs defaultValue={defaultTab} className="w-[400px] max-w-full" onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="register">Register</TabsTrigger>
