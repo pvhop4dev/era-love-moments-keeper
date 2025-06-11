@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import AuthForm from "@/components/auth/AuthForm";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +11,24 @@ import {
   CarouselPrevious
 } from "@/components/ui/carousel";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ArrowRight, Heart, Calendar, ImageIcon, MessageSquare, Gift } from "lucide-react";
+import { 
+  ArrowRight, 
+  Heart, 
+  Calendar, 
+  ImageIcon, 
+  MessageSquare, 
+  Gift,
+  MapPin,
+  Smile,
+  Music,
+  Video,
+  FileText,
+  MessageCircle,
+  Star,
+  Clock,
+  PinIcon,
+  Settings
+} from "lucide-react";
 import { useCallback } from "react";
 import { type CarouselApi } from "@/components/ui/carousel";
 import Eri from "@/components/mascot/Eri";
@@ -59,33 +77,45 @@ const Welcome = () => {
   const features = [
     {
       title: "Track Special Moments",
-      description: "Create and save memories of your special days together",
+      description: "Create and save memories of your special days together with beautiful photo albums",
       icon: <Heart className="h-12 w-12 text-love-500 mb-4" />,
-      color: "from-love-100 to-love-200"
+      color: "from-love-100 to-love-200",
+      image: "photo-1488590528505-98d2b5aba04b"
     },
     {
-      title: "Calendar Events",
-      description: "Never miss an important date with our shared calendar",
+      title: "Smart Calendar & Events",
+      description: "Never miss important dates with our AI-powered calendar and event suggestions",
       icon: <Calendar className="h-12 w-12 text-couple mb-4" />,
-      color: "from-couple-light to-couple"
+      color: "from-couple-light to-couple",
+      image: "photo-1461749280684-dccba630e2f6"
     },
     {
-      title: "Photo Albums",
-      description: "Store and share beautiful photos of your journey together",
-      icon: <ImageIcon className="h-12 w-12 text-love-700 mb-4" />,
-      color: "from-love-200 to-love-300"
-    },
-    {
-      title: "Private Messaging",
-      description: "Communicate securely with your partner through private messages",
+      title: "Rich Media Messaging",
+      description: "Share photos, videos, voice messages, stickers, and even your location privately",
       icon: <MessageSquare className="h-12 w-12 text-love-600 mb-4" />,
-      color: "from-love-300 to-love-400"
+      color: "from-love-200 to-love-300",
+      image: "photo-1581091226825-a6a2a5aee158"
     },
     {
-      title: "Gift Ideas",
-      description: "Get personalized gift suggestions for special occasions",
+      title: "Interactive Communication",
+      description: "Send reactions, polls, quizzes, and schedule messages for the perfect timing",
+      icon: <Smile className="h-12 w-12 text-love-700 mb-4" />,
+      color: "from-love-300 to-love-400",
+      image: "photo-1486312338219-ce68d2c6f44d"
+    },
+    {
+      title: "Personalized Gift Ideas",
+      description: "Get AI-powered gift suggestions based on your partner's gender and preferences",
       icon: <Gift className="h-12 w-12 text-couple-dark mb-4" />,
-      color: "from-couple to-couple-dark"
+      color: "from-couple to-couple-dark",
+      image: "photo-1531297484001-80022131f5a1"
+    },
+    {
+      title: "Love Journey Map",
+      description: "Visualize your relationship milestones and special places on an interactive map",
+      icon: <MapPin className="h-12 w-12 text-love-500 mb-4" />,
+      color: "from-love-400 to-love-500",
+      image: "photo-1498050108023-c5249f4df085"
     }
   ];
 
@@ -95,14 +125,34 @@ const Welcome = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="flex-grow flex flex-col items-center justify-center bg-gradient-to-r from-love-50 to-couple-light">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-love-700 mb-2">
-            EraLove
-          </h1>
-          <p className="text-lg text-love-600 max-w-md mx-auto mb-4">
-            Preserve your precious moments and celebrate your love journey together
+      <div className="flex-grow flex flex-col items-center justify-center bg-gradient-to-br from-love-50 via-white to-couple-light">
+        {/* Hero Section */}
+        <div className="text-center mb-12 px-4">
+          <div className="relative">
+            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-love-600 to-couple-dark bg-clip-text text-transparent mb-6">
+              EraLove
+            </h1>
+            <div className="absolute -top-2 -right-4 animate-pulse">
+              <Heart className="h-8 w-8 text-love-400 fill-current" />
+            </div>
+          </div>
+          <p className="text-xl md:text-2xl text-love-700 max-w-3xl mx-auto mb-6 leading-relaxed">
+            Preserve your precious moments and celebrate your love journey together with AI-powered features
           </p>
+          <div className="flex justify-center items-center gap-4 mb-8">
+            <div className="flex -space-x-2">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-love-400 to-love-500 border-2 border-white flex items-center justify-center">
+                <Heart className="h-5 w-5 text-white fill-current" />
+              </div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-couple to-couple-dark border-2 border-white flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-white" />
+              </div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-love-500 to-love-600 border-2 border-white flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <span className="text-love-600 font-medium">Join thousands of couples</span>
+          </div>
           {!showAuthForm && (
             <Eri 
               message="Welcome to EraLove! I'm Eri, your personal love messenger. I'll help you create and preserve beautiful memories with your special someone! ✨"
@@ -114,7 +164,11 @@ const Welcome = () => {
 
         {!showAuthForm ? (
           <>
-            <div className="w-full max-w-4xl mb-8 px-4">
+            {/* Features Carousel */}
+            <div className="w-full max-w-7xl mb-12 px-4">
+              <h2 className="text-3xl font-bold text-center text-love-700 mb-8">
+                Everything You Need for Your Love Story
+              </h2>
               <Carousel 
                 className="w-full"
                 setApi={setApi}
@@ -123,25 +177,68 @@ const Welcome = () => {
                   loop: true
                 }}
               >
-                <CarouselContent>
+                <CarouselContent className="-ml-2 md:-ml-4">
                   {features.map((feature, index) => (
-                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                      <div className={`love-card h-full flex flex-col items-center text-center p-6 bg-gradient-to-b ${feature.color}`}>
-                        {feature.icon}
-                        <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                        <p className="text-muted-foreground">{feature.description}</p>
+                    <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                      <div className={`love-card h-full flex flex-col overflow-hidden bg-gradient-to-br ${feature.color} group hover:scale-105 transition-all duration-300 min-h-[400px]`}>
+                        {/* Image Section */}
+                        <div className="relative h-48 overflow-hidden">
+                          <img 
+                            src={`https://images.unsplash.com/${feature.image}?w=400&h=200&fit=crop&auto=format`}
+                            alt={feature.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                          <div className="absolute bottom-4 left-4">
+                            {feature.icon}
+                          </div>
+                        </div>
+                        
+                        {/* Content Section */}
+                        <div className="p-6 flex flex-col flex-grow">
+                          <h3 className="text-xl font-bold mb-3 text-love-800">
+                            {feature.title}
+                          </h3>
+                          <p className="text-love-700 leading-relaxed flex-grow">
+                            {feature.description}
+                          </p>
+                          
+                          {/* Feature Icons */}
+                          <div className="flex gap-2 mt-4 pt-4 border-t border-white/20">
+                            {index === 2 && (
+                              <>
+                                <Video className="h-4 w-4 text-love-600" />
+                                <Music className="h-4 w-4 text-love-600" />
+                                <FileText className="h-4 w-4 text-love-600" />
+                                <MapPin className="h-4 w-4 text-love-600" />
+                              </>
+                            )}
+                            {index === 3 && (
+                              <>
+                                <MessageCircle className="h-4 w-4 text-love-600" />
+                                <Star className="h-4 w-4 text-love-600" />
+                                <Clock className="h-4 w-4 text-love-600" />
+                                <PinIcon className="h-4 w-4 text-love-600" />
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <div className="flex justify-center w-full gap-1 mt-4">
+                
+                {/* Custom Pagination */}
+                <div className="flex justify-center w-full gap-2 mt-8">
                   {Array.from({ length: count }).map((_, index) => (
                     <Button
                       key={index}
-                      variant="outline"
-                      size="icon"
-                      className={`h-2 w-2 rounded-full p-0 ${
-                        index === current - 1 ? "bg-love-500" : "bg-muted"
+                      variant="ghost"
+                      size="sm"
+                      className={`h-3 w-8 rounded-full p-0 transition-all duration-300 ${
+                        index === current - 1 
+                          ? "bg-love-500 shadow-lg" 
+                          : "bg-love-200 hover:bg-love-300"
                       }`}
                       onClick={() => api?.scrollTo(index)}
                     >
@@ -149,26 +246,39 @@ const Welcome = () => {
                     </Button>
                   ))}
                 </div>
-                <CarouselPrevious className="left-1 sm:left-4" />
-                <CarouselNext className="right-1 sm:right-4" />
+                <CarouselPrevious className="left-1 sm:left-4 bg-white/80 hover:bg-white" />
+                <CarouselNext className="right-1 sm:right-4 bg-white/80 hover:bg-white" />
               </Carousel>
             </div>
 
-            <div className="flex gap-4 mt-4 mb-8">
-              <Button 
-                onClick={() => handleAuthClick("login")} 
-                className="love-button"
-              >
-                Login
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button 
-                onClick={() => handleAuthClick("register")}
-                variant="outline" 
-                className="border-love-400 text-love-600 hover:bg-love-50"
-              >
-                Register
-              </Button>
+            {/* CTA Section */}
+            <div className="text-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+                <Button 
+                  onClick={() => handleAuthClick("login")} 
+                  className="love-button px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Login
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button 
+                  onClick={() => handleAuthClick("register")}
+                  variant="outline" 
+                  className="border-2 border-love-400 text-love-600 hover:bg-love-50 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Start Your Journey
+                  <Heart className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+              
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto">
+                <p className="text-love-700 font-medium mb-2">
+                  🎉 Create an account to track your relationship milestones
+                </p>
+                <p className="text-love-600">
+                  💝 Save memories, share moments, and celebrate your love every day
+                </p>
+              </div>
             </div>
           </>
         ) : (
@@ -179,17 +289,12 @@ const Welcome = () => {
             <Button 
               variant="link" 
               onClick={() => setShowAuthForm(null)} 
-              className="mt-4 text-love-600"
+              className="mt-4 text-love-600 hover:text-love-700"
             >
-              Back to Home
+              ← Back to Home
             </Button>
           </>
         )}
-
-        <div className="mt-12 text-center text-sm text-muted-foreground mb-8">
-          <p>Create an account to track your relationship milestones,</p>
-          <p>save memories, and celebrate your love every day.</p>
-        </div>
       </div>
 
       {/* Eraquix Footer */}
