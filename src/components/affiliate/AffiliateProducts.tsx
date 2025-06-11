@@ -14,16 +14,18 @@ interface Product {
   category: "gifts" | "experiences" | "jewelry" | "tech";
   affiliateLink: string;
   imageUrl: string;
+  targetGender?: "male" | "female" | "both";
 }
 
 interface AffiliateProductsProps {
   category?: "birthday" | "anniversary" | "valentine" | "general";
   limit?: number;
+  userGender?: "male" | "female" | "other";
 }
 
-const AffiliateProducts = ({ category = "general", limit = 3 }: AffiliateProductsProps) => {
-  // Sample affiliate products - in a real app, these would come from your affiliate network
-  const products: Product[] = [
+const AffiliateProducts = ({ category = "general", limit = 3, userGender }: AffiliateProductsProps) => {
+  // Sample affiliate products with gender targeting
+  const allProducts: Product[] = [
     {
       id: "1",
       name: "Personalized Photo Album",
@@ -33,7 +35,8 @@ const AffiliateProducts = ({ category = "general", limit = 3 }: AffiliateProduct
       rating: 4.8,
       category: "gifts",
       affiliateLink: "https://example.com/affiliate/photo-album",
-      imageUrl: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0"
+      imageUrl: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0",
+      targetGender: "both"
     },
     {
       id: "2",
@@ -43,7 +46,8 @@ const AffiliateProducts = ({ category = "general", limit = 3 }: AffiliateProduct
       rating: 4.9,
       category: "experiences",
       affiliateLink: "https://example.com/affiliate/spa-experience",
-      imageUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874"
+      imageUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874",
+      targetGender: "both"
     },
     {
       id: "3",
@@ -54,7 +58,8 @@ const AffiliateProducts = ({ category = "general", limit = 3 }: AffiliateProduct
       rating: 4.7,
       category: "jewelry",
       affiliateLink: "https://example.com/affiliate/heart-necklace",
-      imageUrl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338"
+      imageUrl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338",
+      targetGender: "female"
     },
     {
       id: "4",
@@ -64,9 +69,66 @@ const AffiliateProducts = ({ category = "general", limit = 3 }: AffiliateProduct
       rating: 4.6,
       category: "tech",
       affiliateLink: "https://example.com/affiliate/smart-frame",
-      imageUrl: "https://images.unsplash.com/photo-1586953720263-776050cf2dfa"
+      imageUrl: "https://images.unsplash.com/photo-1586953720263-776050cf2dfa",
+      targetGender: "both"
+    },
+    {
+      id: "5",
+      name: "Leather Wallet Set",
+      description: "Premium leather wallets for couples with personalized engravings.",
+      price: "$89.99",
+      rating: 4.5,
+      category: "gifts",
+      affiliateLink: "https://example.com/affiliate/leather-wallet",
+      imageUrl: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62",
+      targetGender: "male"
+    },
+    {
+      id: "6",
+      name: "Rose Gold Watch Set",
+      description: "Elegant matching watches in rose gold for the perfect couple.",
+      price: "$299.99",
+      originalPrice: "$399.99",
+      rating: 4.8,
+      category: "jewelry",
+      affiliateLink: "https://example.com/affiliate/watch-set",
+      imageUrl: "https://images.unsplash.com/photo-1434056886845-dac89ffe9b56",
+      targetGender: "female"
+    },
+    {
+      id: "7",
+      name: "Adventure Gear Set",
+      description: "Complete outdoor adventure kit for couples who love exploring together.",
+      price: "$159.99",
+      rating: 4.6,
+      category: "experiences",
+      affiliateLink: "https://example.com/affiliate/adventure-gear",
+      imageUrl: "https://images.unsplash.com/photo-1551632811-561732d1e306",
+      targetGender: "male"
+    },
+    {
+      id: "8",
+      name: "Silk Scarf Collection",
+      description: "Luxurious silk scarves perfect for adding elegance to any outfit.",
+      price: "$69.99",
+      rating: 4.7,
+      category: "gifts",
+      affiliateLink: "https://example.com/affiliate/silk-scarf",
+      imageUrl: "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b",
+      targetGender: "female"
     }
   ];
+
+  // Filter products based on user gender
+  const getFilteredProducts = () => {
+    if (!userGender || userGender === "other") {
+      return allProducts;
+    }
+    
+    return allProducts.filter(product => 
+      product.targetGender === "both" || product.targetGender === userGender
+    );
+  };
 
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
@@ -86,7 +148,8 @@ const AffiliateProducts = ({ category = "general", limit = 3 }: AffiliateProduct
     window.open(affiliateLink, '_blank', 'noopener,noreferrer');
   };
 
-  const displayProducts = products.slice(0, limit);
+  const filteredProducts = getFilteredProducts();
+  const displayProducts = filteredProducts.slice(0, limit);
 
   return (
     <Card className="mt-4">
@@ -94,6 +157,11 @@ const AffiliateProducts = ({ category = "general", limit = 3 }: AffiliateProduct
         <CardTitle className="text-sm flex items-center gap-2">
           <Gift className="h-4 w-4 text-love-500" />
           Recommended for You
+          {userGender && userGender !== "other" && (
+            <Badge variant="outline" className="text-xs">
+              {userGender === "male" ? "♂" : "♀"} {userGender}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>

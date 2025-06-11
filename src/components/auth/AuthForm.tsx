@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Eri from "@/components/mascot/Eri";
+import AvatarSelector from "@/components/auth/AvatarSelector";
 
 interface FormData {
   name?: string;
@@ -18,6 +21,8 @@ interface FormData {
   confirmPassword?: string;
   anniversaryDate?: string;
   dateOfBirth?: string;
+  gender?: "male" | "female" | "other";
+  avatar?: string;
 }
 
 interface User {
@@ -25,9 +30,11 @@ interface User {
   name: string;
   partnerName?: string;
   email: string;
-  passwordHash: string; // In a real app, this would be a hashed password
+  passwordHash: string;
   anniversaryDate?: string;
   dateOfBirth?: string;
+  gender?: "male" | "female" | "other";
+  avatar?: string;
   createdAt: string;
 }
 
@@ -46,6 +53,8 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     confirmPassword: "",
     anniversaryDate: "",
     dateOfBirth: "",
+    gender: undefined,
+    avatar: "",
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -55,6 +64,20 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleGenderChange = (value: string) => {
+    setFormData({
+      ...formData,
+      gender: value as "male" | "female" | "other",
+    });
+  };
+
+  const handleAvatarChange = (avatar: string) => {
+    setFormData({
+      ...formData,
+      avatar,
     });
   };
 
@@ -136,6 +159,8 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
         email: formData.email,
         passwordHash: formData.password, // In a real app, this would be hashed
         dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        avatar: formData.avatar,
         createdAt: new Date().toISOString()
       };
       
@@ -149,7 +174,9 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
         partnerName: "",
         email: newUser.email,
         anniversaryDate: "",
-        dateOfBirth: newUser.dateOfBirth || ""
+        dateOfBirth: newUser.dateOfBirth || "",
+        gender: newUser.gender,
+        avatar: newUser.avatar
       }));
       
       toast.success(t('registrationSuccess'));
@@ -255,6 +282,27 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
                     value={formData.dateOfBirth}
                     onChange={handleChange}
                   />
+                </div>
+                <div className="space-y-3">
+                  <Label>Gender</Label>
+                  <RadioGroup value={formData.gender} onValueChange={handleGenderChange}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="male" id="male" />
+                      <Label htmlFor="male">Male</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="female" id="female" />
+                      <Label htmlFor="female">Female</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="other" id="other" />
+                      <Label htmlFor="other">Other</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                  <Label>Choose Your Avatar</Label>
+                  <AvatarSelector onAvatarChange={handleAvatarChange} selectedAvatar={formData.avatar} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email-register">Email</Label>
