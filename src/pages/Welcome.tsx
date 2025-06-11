@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import AuthForm from "@/components/auth/AuthForm";
 import { useNavigate } from "react-router-dom";
@@ -95,101 +94,134 @@ const Welcome = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-love-50 to-couple-light">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold text-love-700 mb-2">
-          EraLove
-        </h1>
-        <p className="text-lg text-love-600 max-w-md mx-auto mb-4">
-          Preserve your precious moments and celebrate your love journey together
-        </p>
-        {!showAuthForm && (
-          <Eri 
-            message="Welcome to EraLove! I'm Eri, your personal love messenger. I'll help you create and preserve beautiful memories with your special someone! ✨"
-            size="medium"
-            className="justify-center"
-          />
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-grow flex flex-col items-center justify-center bg-gradient-to-r from-love-50 to-couple-light">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-love-700 mb-2">
+            EraLove
+          </h1>
+          <p className="text-lg text-love-600 max-w-md mx-auto mb-4">
+            Preserve your precious moments and celebrate your love journey together
+          </p>
+          {!showAuthForm && (
+            <Eri 
+              message="Welcome to EraLove! I'm Eri, your personal love messenger. I'll help you create and preserve beautiful memories with your special someone! ✨"
+              size="medium"
+              className="justify-center"
+            />
+          )}
+        </div>
+
+        {!showAuthForm ? (
+          <>
+            <div className="w-full max-w-4xl mb-8 px-4">
+              <Carousel 
+                className="w-full"
+                setApi={setApi}
+                opts={{
+                  align: "center",
+                  loop: true
+                }}
+              >
+                <CarouselContent>
+                  {features.map((feature, index) => (
+                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                      <div className={`love-card h-full flex flex-col items-center text-center p-6 bg-gradient-to-b ${feature.color}`}>
+                        {feature.icon}
+                        <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                        <p className="text-muted-foreground">{feature.description}</p>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="flex justify-center w-full gap-1 mt-4">
+                  {Array.from({ length: count }).map((_, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="icon"
+                      className={`h-2 w-2 rounded-full p-0 ${
+                        index === current - 1 ? "bg-love-500" : "bg-muted"
+                      }`}
+                      onClick={() => api?.scrollTo(index)}
+                    >
+                      <span className="sr-only">Go to slide {index + 1}</span>
+                    </Button>
+                  ))}
+                </div>
+                <CarouselPrevious className="left-1 sm:left-4" />
+                <CarouselNext className="right-1 sm:right-4" />
+              </Carousel>
+            </div>
+
+            <div className="flex gap-4 mt-4 mb-8">
+              <Button 
+                onClick={() => handleAuthClick("login")} 
+                className="love-button"
+              >
+                Login
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button 
+                onClick={() => handleAuthClick("register")}
+                variant="outline" 
+                className="border-love-400 text-love-600 hover:bg-love-50"
+              >
+                Register
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="w-full max-w-md">
+              <AuthForm defaultTab={showAuthForm} />
+            </div>
+            <Button 
+              variant="link" 
+              onClick={() => setShowAuthForm(null)} 
+              className="mt-4 text-love-600"
+            >
+              Back to Home
+            </Button>
+          </>
         )}
+
+        <div className="mt-12 text-center text-sm text-muted-foreground mb-8">
+          <p>Create an account to track your relationship milestones,</p>
+          <p>save memories, and celebrate your love every day.</p>
+        </div>
       </div>
 
-      {!showAuthForm ? (
-        <>
-          <div className="w-full max-w-4xl mb-8 px-4">
-            <Carousel 
-              className="w-full"
-              setApi={setApi}
-              opts={{
-                align: "center",
-                loop: true
-              }}
-            >
-              <CarouselContent>
-                {features.map((feature, index) => (
-                  <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                    <div className={`love-card h-full flex flex-col items-center text-center p-6 bg-gradient-to-b ${feature.color}`}>
-                      {feature.icon}
-                      <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                      <p className="text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <div className="flex justify-center w-full gap-1 mt-4">
-                {Array.from({ length: count }).map((_, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="icon"
-                    className={`h-2 w-2 rounded-full p-0 ${
-                      index === current - 1 ? "bg-love-500" : "bg-muted"
-                    }`}
-                    onClick={() => api?.scrollTo(index)}
-                  >
-                    <span className="sr-only">Go to slide {index + 1}</span>
-                  </Button>
-                ))}
-              </div>
-              <CarouselPrevious className="left-1 sm:left-4" />
-              <CarouselNext className="right-1 sm:right-4" />
-            </Carousel>
+      {/* Eraquix Footer */}
+      <footer className="bg-gradient-to-r from-love-500 to-couple py-6 text-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <p className="text-sm mb-1">
+                &copy; {new Date().getFullYear()} EraLove - Preserving your love story
+              </p>
+              <p className="text-xs opacity-80">
+                A product of Eraquix Solutions
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <a 
+                href="https://eraquix.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <img 
+                  src="/lovable-uploads/85c2ca8f-6d2b-4444-a378-044686d7e2ab.png" 
+                  alt="Eraquix Solutions" 
+                  className="h-8 w-auto"
+                />
+                <span className="text-sm font-medium">eraquix.com</span>
+              </a>
+            </div>
           </div>
-
-          <div className="flex gap-4 mt-4 mb-8">
-            <Button 
-              onClick={() => handleAuthClick("login")} 
-              className="love-button"
-            >
-              Login
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button 
-              onClick={() => handleAuthClick("register")}
-              variant="outline" 
-              className="border-love-400 text-love-600 hover:bg-love-50"
-            >
-              Register
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="w-full max-w-md">
-            <AuthForm defaultTab={showAuthForm} />
-          </div>
-          <Button 
-            variant="link" 
-            onClick={() => setShowAuthForm(null)} 
-            className="mt-4 text-love-600"
-          >
-            Back to Home
-          </Button>
-        </>
-      )}
-
-      <div className="mt-12 text-center text-sm text-muted-foreground">
-        <p>Create an account to track your relationship milestones,</p>
-        <p>save memories, and celebrate your love every day.</p>
-      </div>
+        </div>
+      </footer>
     </div>
   );
 };

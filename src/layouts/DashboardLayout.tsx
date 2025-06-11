@@ -149,9 +149,33 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {children}
       </main>
       
-      <footer className="bg-gradient-to-r from-love-500 to-couple py-3 text-white text-center text-sm">
-        <div className="container mx-auto">
-          &copy; {new Date().getFullYear()} EraLove - Preserving your love story
+      <footer className="bg-gradient-to-r from-love-500 to-couple py-6 text-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <p className="text-sm mb-1">
+                &copy; {new Date().getFullYear()} EraLove - Preserving your love story
+              </p>
+              <p className="text-xs opacity-80">
+                A product of Eraquix Solutions
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <a 
+                href="https://eraquix.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <img 
+                  src="/lovable-uploads/85c2ca8f-6d2b-4444-a378-044686d7e2ab.png" 
+                  alt="Eraquix Solutions" 
+                  className="h-8 w-auto"
+                />
+                <span className="text-sm font-medium">eraquix.com</span>
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
