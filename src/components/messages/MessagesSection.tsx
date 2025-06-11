@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const MessagesSection = ({
   const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   // Load existing messages
   useEffect(() => {
@@ -32,7 +34,6 @@ const MessagesSection = ({
     if (storedMessages) {
       try {
         const parsedMessages = JSON.parse(storedMessages);
-        // Filter messages that belong to this conversation
         const conversationMessages = parsedMessages.filter(
           (msg: Message) => 
             (msg.sender === userEmail || msg.sender === partnerEmail)
@@ -48,23 +49,38 @@ const MessagesSection = ({
         {
           id: "msg-1",
           sender: partnerEmail,
-          content: "Hi! How are you today?",
-          timestamp: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-          read: true
+          content: "Hi! How are you today? 😊",
+          timestamp: new Date(now.getTime() - 86400000).toISOString(),
+          read: true,
+          type: "text"
         },
         {
           id: "msg-2",
           sender: userEmail,
           content: "I'm doing great! Looking forward to our date tomorrow.",
           timestamp: new Date(now.getTime() - 50000000).toISOString(),
-          read: true
+          read: true,
+          type: "text"
         },
         {
           id: "msg-3",
           sender: partnerEmail,
+          content: "",
+          timestamp: new Date(now.getTime() - 40000000).toISOString(),
+          read: true,
+          type: "sticker",
+          metadata: { emoji: "💖", name: "Love" }
+        },
+        {
+          id: "msg-4",
+          sender: partnerEmail,
           content: "Me too! I'll pick you up at 7.",
           timestamp: new Date(now.getTime() - 30000000).toISOString(),
-          read: true
+          read: true,
+          type: "text",
+          reactions: [
+            { emoji: "❤️", count: 1, users: [userEmail] }
+          ]
         }
       ];
       
@@ -73,23 +89,131 @@ const MessagesSection = ({
     }
   }, [userEmail, partnerEmail]);
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (content: string, type = "text", metadata?: any) => {
     const newMessage: Message = {
       id: uuidv4(),
       sender: userEmail,
       content,
+      type,
+      metadata,
       timestamp: new Date().toISOString(),
-      read: false
+      read: false,
+      replyTo: replyingTo?.id
     };
 
     const updatedMessages = [...messages, newMessage];
     setMessages(updatedMessages);
     
-    // Save to localStorage
     localStorage.setItem("eralove-messages", JSON.stringify(updatedMessages));
     
-    // In a real app, we would send this to the partner
-    toast.success("Message sent");
+    // Clear reply state
+    setReplyingTo(null);
+    
+    const messageTypeText = type === "text" ? "Message" : 
+                           type === "sticker" ? "Sticker" :
+                           type === "photo" ? "Photo" :
+                           type === "video" ? "Video" :
+                           type === "file" ? "File" :
+                           type === "location" ? "Location" :
+                           type === "voice" ? "Voice message" :
+                           type === "audio" ? "Audio" :
+                           type === "poll" ? "Poll" :
+                           type === "quiz" ? "Quiz" :
+                           type === "scheduled" ? "Scheduled message" :
+                           type === "pinned" ? "Pinned message" :
+                           type === "starred" ? "Starred message" : "Message";
+    
+    toast.success(`${messageTypeText} sent`);
+  };
+
+  const handleReplyToMessage = (message: Message) => {
+    setReplyingTo(message);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+  };
+
+  const handleReactToMessage = (messageId: string, emoji: string) => {
+    setMessages(prevMessages => {
+      return prevMessages.map(message => {
+        if (message.id === messageId) {
+          const reactions = message.reactions || [];
+          const existingReaction = reactions.find(r => r.emoji === emoji);
+          
+          if (existingReaction) {
+            // Toggle reaction
+            const userHasReacted = existingReaction.users.includes(userEmail);
+            if (userHasReacted) {
+              existingReaction.count -= 1;
+              existingReaction.users = existingReaction.users.filter(u => u !== userEmail);
+              if (existingReaction.count === 0) {
+                return {
+                  ...message,
+                  reactions: reactions.filter(r => r.emoji !== emoji)
+                };
+              }
+            } else {
+              existingReaction.count += 1;
+              existingReaction.users.push(userEmail);
+            }
+          } else {
+            // Add new reaction
+            reactions.push({
+              emoji,
+              count: 1,
+              users: [userEmail]
+            });
+          }
+          
+          return {
+            ...message,
+            reactions: [...reactions]
+          };
+        }
+        return message;
+      });
+    });
+    
+    // Update localStorage
+    setTimeout(() => {
+      const updatedMessages = messages.map(message => {
+        if (message.id === messageId) {
+          const reactions = message.reactions || [];
+          const existingReaction = reactions.find(r => r.emoji === emoji);
+          
+          if (existingReaction) {
+            const userHasReacted = existingReaction.users.includes(userEmail);
+            if (userHasReacted) {
+              existingReaction.count -= 1;
+              existingReaction.users = existingReaction.users.filter(u => u !== userEmail);
+              if (existingReaction.count === 0) {
+                return {
+                  ...message,
+                  reactions: reactions.filter(r => r.emoji !== emoji)
+                };
+              }
+            } else {
+              existingReaction.count += 1;
+              existingReaction.users.push(userEmail);
+            }
+          } else {
+            reactions.push({
+              emoji,
+              count: 1,
+              users: [userEmail]
+            });
+          }
+          
+          return {
+            ...message,
+            reactions: [...reactions]
+          };
+        }
+        return message;
+      });
+      localStorage.setItem("eralove-messages", JSON.stringify(updatedMessages));
+    }, 100);
   };
 
   return (
@@ -108,7 +232,7 @@ const MessagesSection = ({
           </DialogTitle>
           <div className="mt-2">
             <Eri 
-              message="I'm here to help you stay connected! Send sweet messages to keep the love flowing! 💕"
+              message="Now you can send photos, stickers, voice messages, polls and so much more! Keep the love flowing! 💕"
               size="small"
             />
           </div>
@@ -119,10 +243,16 @@ const MessagesSection = ({
               messages={messages}
               currentUserEmail={userEmail}
               partnerName={partnerName}
+              onReplyMessage={handleReplyToMessage}
+              onReactToMessage={handleReactToMessage}
             />
           </div>
           <div className="p-4 border-t">
-            <MessageInput onSendMessage={handleSendMessage} />
+            <MessageInput 
+              onSendMessage={handleSendMessage}
+              replyingTo={replyingTo}
+              onCancelReply={handleCancelReply}
+            />
           </div>
         </div>
       </DialogContent>
