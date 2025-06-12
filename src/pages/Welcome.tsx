@@ -77,45 +77,45 @@ const Welcome = () => {
   const features = [
     {
       title: "Track Special Moments",
-      description: "Create and save memories of your special days together with beautiful photo albums",
+      description: "Create and save memories of your special days together with beautiful photo albums and AI-powered memory suggestions",
       icon: <Heart className="h-12 w-12 text-love-500 mb-4" />,
       color: "from-love-100 to-love-200",
-      image: "photo-1488590528505-98d2b5aba04b"
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=200&fit=crop&auto=format" // cute couple illustration
     },
     {
       title: "Smart Calendar & Events",
-      description: "Never miss important dates with our AI-powered calendar and event suggestions",
+      description: "Never miss important dates with our AI-powered calendar, event suggestions, and automatic anniversary reminders",
       icon: <Calendar className="h-12 w-12 text-couple mb-4" />,
       color: "from-couple-light to-couple",
-      image: "photo-1461749280684-dccba630e2f6"
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=200&fit=crop&auto=format" // calendar with hearts
     },
     {
-      title: "Rich Media Messaging",
-      description: "Share photos, videos, voice messages, stickers, and even your location privately",
+      title: "Enhanced Private Messaging",
+      description: "Share emojis, stickers, photos, videos, voice messages, locations, polls, quizzes, and schedule messages perfectly",
       icon: <MessageSquare className="h-12 w-12 text-love-600 mb-4" />,
       color: "from-love-200 to-love-300",
-      image: "photo-1581091226825-a6a2a5aee158"
+      image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop&auto=format" // cute messaging interface
     },
     {
       title: "Interactive Communication",
-      description: "Send reactions, polls, quizzes, and schedule messages for the perfect timing",
+      description: "Send reactions, create polls and quizzes, pin important messages, star favorites, and reply with love",
       icon: <Smile className="h-12 w-12 text-love-700 mb-4" />,
       color: "from-love-300 to-love-400",
-      image: "photo-1486312338219-ce68d2c6f44d"
+      image: "https://images.unsplash.com/photo-1516962126636-27ad087061cc?w=400&h=200&fit=crop&auto=format" // happy couple communication
     },
     {
-      title: "Personalized Gift Ideas",
-      description: "Get AI-powered gift suggestions based on your partner's gender and preferences",
+      title: "AI-Powered Gift Ideas",
+      description: "Get personalized gift suggestions based on your partner's preferences, special occasions, and relationship milestones",
       icon: <Gift className="h-12 w-12 text-couple-dark mb-4" />,
       color: "from-couple to-couple-dark",
-      image: "photo-1531297484001-80022131f5a1"
+      image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400&h=200&fit=crop&auto=format" // cute gift boxes
     },
     {
       title: "Love Journey Map",
-      description: "Visualize your relationship milestones and special places on an interactive map",
+      description: "Visualize your relationship milestones, special places, and create an interactive map of your love story together",
       icon: <MapPin className="h-12 w-12 text-love-500 mb-4" />,
       color: "from-love-400 to-love-500",
-      image: "photo-1498050108023-c5249f4df085"
+      image: "https://images.unsplash.com/photo-1471919743851-c4df8b6ee103?w=400&h=200&fit=crop&auto=format" // cute world map with hearts
     }
   ];
 
@@ -181,16 +181,24 @@ const Welcome = () => {
                   {features.map((feature, index) => (
                     <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
                       <div className={`love-card h-full flex flex-col overflow-hidden bg-gradient-to-br ${feature.color} group hover:scale-105 transition-all duration-300 min-h-[400px]`}>
-                        {/* Image Section */}
+                        {/* Image Section with cute chibi style */}
                         <div className="relative h-48 overflow-hidden">
                           <img 
-                            src={`https://images.unsplash.com/${feature.image}?w=400&h=200&fit=crop&auto=format`}
+                            src={feature.image}
                             alt={feature.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 filter brightness-110 saturate-110"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                          <div className="absolute bottom-4 left-4">
+                          <div className="absolute inset-0 bg-gradient-to-t from-pink-100/30 to-transparent" />
+                          <div className="absolute bottom-4 left-4 drop-shadow-lg">
                             {feature.icon}
+                          </div>
+                          {/* Add cute decorative elements */}
+                          <div className="absolute top-2 right-2">
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-love-300 rounded-full animate-pulse"></div>
+                              <div className="w-2 h-2 bg-couple rounded-full animate-pulse delay-150"></div>
+                              <div className="w-2 h-2 bg-love-400 rounded-full animate-pulse delay-300"></div>
+                            </div>
                           </div>
                         </div>
                         
