@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Settings, Calendar as CalendarIcon, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getActiveMatch, getPartnerDetails } from "@/utils/matchUtils";
+import AnonymousChat from "@/components/chat/AnonymousChat";
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -42,6 +43,7 @@ const Dashboard = () => {
     anniversaryDate: string;
     dateOfBirth: string;
   } | null>(null);
+  const [showAnonymousChat, setShowAnonymousChat] = useState(false);
   
   useEffect(() => {
     // Load user data
@@ -416,6 +418,13 @@ const Dashboard = () => {
         onClose={() => setIsSettingsOpen(false)}
         userEmail={userData.email}
         onUnpair={handleUnpair}
+      />
+      
+      {/* Anonymous Chat */}
+      <AnonymousChat
+        userEmail={userData.email}
+        isOpen={showAnonymousChat}
+        onClose={() => setShowAnonymousChat(false)}
       />
     </DashboardLayout>
   );
