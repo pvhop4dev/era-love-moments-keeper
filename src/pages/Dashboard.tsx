@@ -327,7 +327,7 @@ const Dashboard = () => {
               
               {/* Love Ideas Section */}
               <div className="mt-6">
-                <LoveIdeas />
+                <LoveIdeas hasActiveMatch={hasActiveMatch} />
               </div>
             </div>
             

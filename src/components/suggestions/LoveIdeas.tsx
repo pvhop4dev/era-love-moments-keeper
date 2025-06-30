@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +19,10 @@ interface LoveIdea {
 
 interface LoveIdeasProps {
   onSelectIdea?: (idea: LoveIdea) => void;
+  hasActiveMatch?: boolean;
 }
 
-const LoveIdeas = ({ onSelectIdea }: LoveIdeasProps) => {
+const LoveIdeas = ({ onSelectIdea, hasActiveMatch = false }: LoveIdeasProps) => {
   const { t } = useLanguage();
 
   const loveIdeas: LoveIdea[] = [
@@ -103,69 +105,80 @@ const LoveIdeas = ({ onSelectIdea }: LoveIdeasProps) => {
           <Heart className="h-5 w-5 text-love-500" />
           Love Ideas
         </CardTitle>
-        <div className="mt-3">
-          <Eri 
-            message="I've found some amazing places for you two! These spots are perfect for creating new memories together. Which one catches your eye? 😊"
-            size="small"
-          />
-        </div>
+        {hasActiveMatch && (
+          <div className="mt-3">
+            <Eri 
+              message="I've found some amazing places for you two! These spots are perfect for creating new memories together. Which one catches your eye? 😊"
+              size="small"
+            />
+          </div>
+        )}
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {loveIdeas.map((idea) => (
-            <div
-              key={idea.id}
-              className="group cursor-pointer border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-              onClick={() => onSelectIdea?.(idea)}
-            >
-              {idea.image && (
-                <div className="relative h-32 overflow-hidden">
-                  <img
-                    src={idea.image}
-                    alt={idea.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                  />
-                  <div className="absolute top-2 left-2">
-                    <Badge className={`${getCategoryColor(idea.category)} flex items-center gap-1`}>
-                      {getCategoryIcon(idea.category)}
-                      {idea.category}
-                    </Badge>
-                  </div>
-                  {idea.rating && (
-                    <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                      ⭐ {idea.rating}
+        {hasActiveMatch ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {loveIdeas.map((idea) => (
+                <div
+                  key={idea.id}
+                  className="group cursor-pointer border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                  onClick={() => onSelectIdea?.(idea)}
+                >
+                  {idea.image && (
+                    <div className="relative h-32 overflow-hidden">
+                      <img
+                        src={idea.image}
+                        alt={idea.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                      <div className="absolute top-2 left-2">
+                        <Badge className={`${getCategoryColor(idea.category)} flex items-center gap-1`}>
+                          {getCategoryIcon(idea.category)}
+                          {idea.category}
+                        </Badge>
+                      </div>
+                      {idea.rating && (
+                        <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                          ⭐ {idea.rating}
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
-              <div className="p-3">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-medium text-sm group-hover:text-love-600 transition-colors">
-                    {idea.title}
-                  </h3>
-                  {idea.price && (
-                    <span className="text-xs text-muted-foreground">{idea.price}</span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mb-2">{idea.description}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3" />
-                    {idea.location}
+                  <div className="p-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-medium text-sm group-hover:text-love-600 transition-colors">
+                        {idea.title}
+                      </h3>
+                      {idea.price && (
+                        <span className="text-xs text-muted-foreground">{idea.price}</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{idea.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        {idea.location}
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-6 px-2">
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-6 px-2">
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="mt-4 text-center">
-          <Button variant="outline" className="text-sm">
-            View More Ideas
-          </Button>
-        </div>
+            <div className="mt-4 text-center">
+              <Button variant="outline" className="text-sm">
+                View More Ideas
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="text-center text-muted-foreground py-8">
+            <Heart className="h-12 w-12 mx-auto mb-3 opacity-30" />
+            <p>Connect with your partner to discover love ideas together</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
