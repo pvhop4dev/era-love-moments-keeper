@@ -1,5 +1,7 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +15,18 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, Languages, Palette, Unlink, Globe, User } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Settings, Languages, Palette, Unlink, Globe, User, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { getActiveMatch } from "@/utils/matchUtils";
 
@@ -32,6 +45,8 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
     }
     return false;
   });
+  const [confirmText, setConfirmText] = useState("");
+  const [isUnpairDialogOpen, setIsUnpairDialogOpen] = useState(false);
 
   const handleLanguageChange = (language: string) => {
     const settings = JSON.parse(localStorage.getItem("eralove-settings") || "{}");
@@ -53,7 +68,7 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
   };
 
   const handleUnpair = () => {
-    if (!userEmail) return;
+    if (!userEmail || confirmText !== "unpair") return;
     
     try {
       const allUsers = JSON.parse(localStorage.getItem("eralove-users") || "[]");
@@ -102,6 +117,8 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
         
         toast.success("You have been unpaired successfully");
         setHasActiveMatch(false);
+        setIsUnpairDialogOpen(false);
+        setConfirmText("");
         if (onUnpair) {
           onUnpair();
         }
@@ -110,6 +127,11 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
       console.error("Error unpairing:", error);
       toast.error("Failed to unpair. Please try again.");
     }
+  };
+
+  const handleUnpairDialogClose = () => {
+    setIsUnpairDialogOpen(false);
+    setConfirmText("");
   };
 
   return (
@@ -179,13 +201,67 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem 
-                onClick={handleUnpair}
-                className="text-destructive focus:text-destructive"
-              >
-                <Unlink className="mr-2 h-4 w-4" />
-                <span>Unpair from Partner</span>
-              </DropdownMenuItem>
+              <AlertDialog open={isUnpairDialogOpen} onOpenChange={setIsUnpairDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem 
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setIsUnpairDialogOpen(true);
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Unlink className="mr-2 h-4 w-4" />
+                    <span>Unpair from Partner</span>
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="sm:max-w-[425px]">
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-destructive" />
+                      <AlertDialogTitle className="text-destructive">
+                        Warning: Unpair from Partner
+                      </AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="text-left space-y-3">
+                      <p className="font-medium">This action cannot be undone!</p>
+                      <p>
+                        Unpairing will permanently remove your connection with your partner and delete:
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>All shared memories and photos</li>
+                        <li>Your anniversary date</li>
+                        <li>All couple messages and conversations</li>
+                        <li>Your love calendar events</li>
+                      </ul>
+                      <p className="text-sm font-medium mt-4">
+                        To confirm, please type "<span className="font-mono bg-gray-100 px-1 rounded">unpair</span>" below:
+                      </p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  
+                  <div className="py-4">
+                    <Input
+                      placeholder="Type 'unpair' to confirm"
+                      value={confirmText}
+                      onChange={(e) => setConfirmText(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={handleUnpairDialogClose}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleUnpair}
+                      disabled={confirmText !== "unpair"}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Unpair Partner
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </DropdownMenuGroup>
           </>
         )}
