@@ -7,13 +7,14 @@ import DayDetailsSidebar from "@/components/calendar/DayDetailsSidebar";
 import EventModal, { EventData } from "@/components/events/EventModal";
 import PhotoModal, { PhotoData } from "@/components/photos/PhotoModal";
 import LoveIdeas from "@/components/suggestions/LoveIdeas";
-import SettingsModal from "@/components/settings/SettingsModal";
+import SettingsMenu from "@/components/settings/SettingsMenu";
+import ThemeSettingsModal from "@/components/settings/ThemeSettingsModal";
 import MatchNotification from "@/components/match/MatchNotification";
 import MessagesSection from "@/components/messages/MessagesSection";
 import LoveMap from "@/components/map/LoveMap";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Settings, Calendar as CalendarIcon, MapPin } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getActiveMatch, getPartnerDetails } from "@/utils/matchUtils";
 import AnonymousChat from "@/components/chat/AnonymousChat";
@@ -32,7 +33,7 @@ const Dashboard = () => {
   const [photos, setPhotos] = useState<PhotoData[]>([]);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isThemeSettingsOpen, setIsThemeSettingsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventData | undefined>(undefined);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoData | undefined>(undefined);
@@ -220,10 +221,6 @@ const Dashboard = () => {
     setIsEventModalOpen(true);
   };
 
-  const openSettings = () => {
-    setIsSettingsOpen(true);
-  };
-
   // Get all dates that have events or photos for calendar highlighting
   const getDaysWithContent = () => {
     // Only show event/photo markers if user has active match
@@ -298,14 +295,11 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-2" 
-          onClick={openSettings}
-        >
-          <Settings className="h-4 w-4" />
-          {t('settings')}
-        </Button>
+        <SettingsMenu 
+          userEmail={userData.email}
+          onUnpair={handleUnpair}
+          onOpenThemeSettings={() => setIsThemeSettingsOpen(true)}
+        />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -412,12 +406,10 @@ const Dashboard = () => {
         </>
       )}
       
-      {/* Settings Modal with unpair functionality */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        userEmail={userData.email}
-        onUnpair={handleUnpair}
+      {/* Theme Settings Modal */}
+      <ThemeSettingsModal
+        isOpen={isThemeSettingsOpen}
+        onClose={() => setIsThemeSettingsOpen(false)}
       />
       
       {/* Anonymous Chat */}
