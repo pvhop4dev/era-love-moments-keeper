@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +13,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, Languages, Palette, Unlink, Globe, Sun, Moon, Sunset } from "lucide-react";
+import { Settings, Languages, Palette, Unlink, Globe, User } from "lucide-react";
 import { toast } from "sonner";
 import { getActiveMatch } from "@/utils/matchUtils";
 
@@ -22,9 +21,10 @@ interface SettingsMenuProps {
   userEmail?: string;
   onUnpair?: () => void;
   onOpenThemeSettings?: () => void;
+  onOpenPersonalInfo?: () => void;
 }
 
-const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings }: SettingsMenuProps) => {
+const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonalInfo }: SettingsMenuProps) => {
   const [hasActiveMatch, setHasActiveMatch] = useState(() => {
     if (userEmail) {
       const activeMatch = getActiveMatch(userEmail);
@@ -125,6 +125,12 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings }: SettingsMenu
         <DropdownMenuSeparator />
         
         <DropdownMenuGroup>
+          {/* Personal Information */}
+          <DropdownMenuItem onClick={onOpenPersonalInfo}>
+            <User className="mr-2 h-4 w-4" />
+            <span>Personal Information</span>
+          </DropdownMenuItem>
+
           {/* Language Settings */}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>

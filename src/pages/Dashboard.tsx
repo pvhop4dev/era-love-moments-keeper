@@ -9,6 +9,7 @@ import PhotoModal, { PhotoData } from "@/components/photos/PhotoModal";
 import LoveIdeas from "@/components/suggestions/LoveIdeas";
 import SettingsMenu from "@/components/settings/SettingsMenu";
 import ThemeSettingsModal from "@/components/settings/ThemeSettingsModal";
+import PersonalInfoModal from "@/components/settings/PersonalInfoModal";
 import MatchNotification from "@/components/match/MatchNotification";
 import MessagesSection from "@/components/messages/MessagesSection";
 import LoveMap from "@/components/map/LoveMap";
@@ -34,6 +35,7 @@ const Dashboard = () => {
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [isThemeSettingsOpen, setIsThemeSettingsOpen] = useState(false);
+  const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventData | undefined>(undefined);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoData | undefined>(undefined);
@@ -299,6 +301,7 @@ const Dashboard = () => {
           userEmail={userData.email}
           onUnpair={handleUnpair}
           onOpenThemeSettings={() => setIsThemeSettingsOpen(true)}
+          onOpenPersonalInfo={() => setIsPersonalInfoOpen(true)}
         />
       </div>
       
@@ -410,6 +413,13 @@ const Dashboard = () => {
       <ThemeSettingsModal
         isOpen={isThemeSettingsOpen}
         onClose={() => setIsThemeSettingsOpen(false)}
+      />
+      
+      {/* Personal Information Modal */}
+      <PersonalInfoModal
+        isOpen={isPersonalInfoOpen}
+        onClose={() => setIsPersonalInfoOpen(false)}
+        userEmail={userData.email}
       />
       
       {/* Anonymous Chat */}
