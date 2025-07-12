@@ -129,15 +129,15 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Personal Information</DialogTitle>
           <DialogDescription>
             Update your personal information and profile settings.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
