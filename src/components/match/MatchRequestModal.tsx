@@ -35,6 +35,7 @@ const MatchRequestModal = ({
   const { t } = useLanguage();
   const [partnerEmail, setPartnerEmail] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+  const [isAccepting, setIsAccepting] = useState(false);
   
   const handleSendRequest = () => {
     if (!partnerEmail.trim()) {
@@ -135,6 +136,14 @@ const MatchRequestModal = ({
       onRequestHandled();
     }
   };
+
+  const handleStartAccept = () => {
+    setIsAccepting(true);
+  };
+
+  const handleCancelAccept = () => {
+    setIsAccepting(false);
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -167,35 +176,37 @@ const MatchRequestModal = ({
                 <p className="text-sm text-muted-foreground">{pendingRequest?.requesterEmail}</p>
               </div>
               
-              <div className="grid gap-2 mt-2">
-                <Label>{t('setRelationshipStartDate')}</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : <span>{t('selectDate')}</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-                <p className="text-sm text-muted-foreground">
-                  {t('matchDateExplanation')}
-                </p>
-              </div>
+              {isAccepting && (
+                <div className="grid gap-2 mt-2">
+                  <Label>{t('setRelationshipStartDate')}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !startDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, "PPP") : <span>{t('selectDate')}</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={setStartDate}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-sm text-muted-foreground">
+                    {t('matchDateExplanation')}
+                  </p>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -218,26 +229,46 @@ const MatchRequestModal = ({
             </Button>
           ) : (
             <div className="flex gap-2 flex-wrap">
-              <Button 
-                variant="outline" 
-                onClick={handleDeclineRequest} 
-                className="border-red-200 hover:bg-red-50 text-red-600"
-              >
-                {t('decline')}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleIgnoreRequest} 
-                className="border-gray-200 hover:bg-gray-50"
-              >
-                {t('ignore')}
-              </Button>
-              <Button 
-                onClick={handleAcceptRequest} 
-                className="love-button"
-              >
-                {t('accept')}
-              </Button>
+              {!isAccepting ? (
+                <>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleDeclineRequest} 
+                    className="border-red-200 hover:bg-red-50 text-red-600"
+                  >
+                    {t('decline')}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleIgnoreRequest} 
+                    className="border-gray-200 hover:bg-gray-50"
+                  >
+                    {t('ignore')}
+                  </Button>
+                  <Button 
+                    onClick={handleStartAccept} 
+                    className="love-button"
+                  >
+                    {t('accept')}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCancelAccept} 
+                    className="border-gray-200 hover:bg-gray-50"
+                  >
+                    {t('cancel')}
+                  </Button>
+                  <Button 
+                    onClick={handleAcceptRequest} 
+                    className="love-button"
+                  >
+                    {t('accept')}
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </DialogFooter>
