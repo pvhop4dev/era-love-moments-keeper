@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { User, Edit3 } from "lucide-react";
 import AvatarSelector from "@/components/auth/AvatarSelector";
 
 interface PersonalInfoModalProps {
@@ -38,6 +40,7 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
     avatar: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
 
   useEffect(() => {
     if (isOpen && userEmail) {
@@ -195,10 +198,42 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
           
           <div className="space-y-2">
             <Label>Avatar</Label>
-            <AvatarSelector 
-              onAvatarChange={handleAvatarChange} 
-              selectedAvatar={formData.avatar} 
-            />
+            {!isEditingAvatar ? (
+              <div className="flex items-center space-x-3">
+                <Avatar className="w-16 h-16">
+                  <AvatarImage src={formData.avatar} />
+                  <AvatarFallback>
+                    <User className="h-8 w-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsEditingAvatar(true)}
+                >
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Change Avatar
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <AvatarSelector 
+                  onAvatarChange={handleAvatarChange} 
+                  selectedAvatar={formData.avatar} 
+                />
+                <div className="flex space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsEditingAvatar(false)}
+                  >
+                    Done
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
