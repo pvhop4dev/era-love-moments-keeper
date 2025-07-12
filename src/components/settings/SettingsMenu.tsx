@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,6 +39,7 @@ interface SettingsMenuProps {
 }
 
 const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonalInfo }: SettingsMenuProps) => {
+  const { language, setLanguage } = useLanguage();
   const [hasActiveMatch, setHasActiveMatch] = useState(() => {
     if (userEmail) {
       const activeMatch = getActiveMatch(userEmail);
@@ -48,11 +50,12 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
   const [confirmText, setConfirmText] = useState("");
   const [isUnpairDialogOpen, setIsUnpairDialogOpen] = useState(false);
 
-  const handleLanguageChange = (language: string) => {
-    const settings = JSON.parse(localStorage.getItem("eralove-settings") || "{}");
-    const updatedSettings = { ...settings, language };
-    localStorage.setItem("eralove-settings", JSON.stringify(updatedSettings));
-    toast.success(`Language changed to ${getLanguageName(language)}`);
+  const handleLanguageChange = (newLanguage: string) => {
+    // Only allow supported languages from the context
+    if (['en', 'es', 'fr'].includes(newLanguage)) {
+      setLanguage(newLanguage as 'en' | 'es' | 'fr');
+      toast.success(`Language changed to ${getLanguageName(newLanguage)}`);
+    }
   };
 
   const getLanguageName = (code: string) => {
@@ -165,10 +168,6 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
                   <Globe className="mr-2 h-4 w-4" />
                   English
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleLanguageChange('vi')}>
-                  <Globe className="mr-2 h-4 w-4" />
-                  Tiếng Việt
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleLanguageChange('es')}>
                   <Globe className="mr-2 h-4 w-4" />
                   Español
@@ -176,14 +175,6 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
                 <DropdownMenuItem onClick={() => handleLanguageChange('fr')}>
                   <Globe className="mr-2 h-4 w-4" />
                   Français
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleLanguageChange('de')}>
-                  <Globe className="mr-2 h-4 w-4" />
-                  Deutsch
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleLanguageChange('zh')}>
-                  <Globe className="mr-2 h-4 w-4" />
-                  中文
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>

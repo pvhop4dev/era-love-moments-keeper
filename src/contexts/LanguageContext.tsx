@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type TranslationKey = 
@@ -77,7 +76,24 @@ type TranslationKey =
   | 'create'
   | 'event'
   | 'privateMessages'
-  | 'ignore';
+  | 'personalInformation'
+  | 'updatePersonalInfo'
+  | 'name'
+  | 'yourName'
+  | 'emailCannotBeChanged'
+  | 'dateOfBirth'
+  | 'gender'
+  | 'male'
+  | 'female'
+  | 'other'
+  | 'avatar'
+  | 'changeAvatar'
+  | 'done'
+  | 'saveChanges'
+  | 'saving'
+  | 'fillRequiredFields'
+  | 'personalInfoUpdated'
+  | 'failedUpdatePersonalInfo';
 
 type Translations = {
   [key in TranslationKey]: string;
@@ -167,7 +183,25 @@ const translations: Record<Languages, Translations> = {
     update: 'Update',
     create: 'Create',
     event: 'event',
-    privateMessages: 'Private Messages'
+    privateMessages: 'Private Messages',
+    personalInformation: 'Personal Information',
+    updatePersonalInfo: 'Update your personal information and profile settings.',
+    name: 'Name',
+    yourName: 'Your name',
+    emailCannotBeChanged: 'Email cannot be changed',
+    dateOfBirth: 'Date of Birth',
+    gender: 'Gender',
+    male: 'Male',
+    female: 'Female',
+    other: 'Other',
+    avatar: 'Avatar',
+    changeAvatar: 'Change Avatar',
+    done: 'Done',
+    saveChanges: 'Save Changes',
+    saving: 'Saving...',
+    fillRequiredFields: 'Please fill in all required fields',
+    personalInfoUpdated: 'Personal information updated successfully',
+    failedUpdatePersonalInfo: 'Failed to update personal information'
   },
   
   es: {
@@ -245,7 +279,25 @@ const translations: Record<Languages, Translations> = {
     update: 'Actualizar',
     create: 'Crear',
     event: 'evento',
-    privateMessages: 'Mensajes Privados'
+    privateMessages: 'Mensajes Privados',
+    personalInformation: 'Información Personal',
+    updatePersonalInfo: 'Actualiza tu información personal y configuración de perfil.',
+    name: 'Nombre',
+    yourName: 'Tu nombre',
+    emailCannotBeChanged: 'El email no se puede cambiar',
+    dateOfBirth: 'Fecha de Nacimiento',
+    gender: 'Género',
+    male: 'Hombre',
+    female: 'Mujer',
+    other: 'Otro',
+    avatar: 'Avatar',
+    changeAvatar: 'Cambiar Avatar',
+    done: 'Listo',
+    saveChanges: 'Guardar Cambios',
+    saving: 'Guardando...',
+    fillRequiredFields: 'Por favor completa todos los campos requeridos',
+    personalInfoUpdated: 'Información personal actualizada exitosamente',
+    failedUpdatePersonalInfo: 'Error al actualizar información personal'
   },
   
   fr: {
@@ -323,7 +375,25 @@ const translations: Record<Languages, Translations> = {
     update: 'Mettre à jour',
     create: 'Créer',
     event: 'événement',
-    privateMessages: 'Messages Privés'
+    privateMessages: 'Messages Privés',
+    personalInformation: 'Informations Personnelles',
+    updatePersonalInfo: 'Mettez à jour vos informations personnelles et paramètres de profil.',
+    name: 'Nom',
+    yourName: 'Votre nom',
+    emailCannotBeChanged: 'L\'email ne peut pas être modifié',
+    dateOfBirth: 'Date de Naissance',
+    gender: 'Genre',
+    male: 'Homme',
+    female: 'Femme',
+    other: 'Autre',
+    avatar: 'Avatar',
+    changeAvatar: 'Changer Avatar',
+    done: 'Terminé',
+    saveChanges: 'Enregistrer les Modifications',
+    saving: 'Enregistrement...',
+    fillRequiredFields: 'Veuillez remplir tous les champs obligatoires',
+    personalInfoUpdated: 'Informations personnelles mises à jour avec succès',
+    failedUpdatePersonalInfo: 'Échec de la mise à jour des informations personnelles'
   }
 };
 

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { User, Edit3 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import AvatarSelector from "@/components/auth/AvatarSelector";
 
 interface PersonalInfoModalProps {
@@ -32,6 +33,7 @@ interface UserData {
 }
 
 const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProps) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<UserData>({
     name: "",
     email: "",
@@ -83,7 +85,7 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
 
   const handleSave = async () => {
     if (!formData.name || !formData.dateOfBirth) {
-      toast.error("Please fill in all required fields");
+      toast.error(t('fillRequiredFields'));
       return;
     }
 
@@ -120,11 +122,11 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
         localStorage.setItem("eralove-user", JSON.stringify(updatedCurrentUser));
       }
       
-      toast.success("Personal information updated successfully");
+      toast.success(t('personalInfoUpdated'));
       onClose();
     } catch (error) {
       console.error("Error updating personal info:", error);
-      toast.error("Failed to update personal information");
+      toast.error(t('failedUpdatePersonalInfo'));
     }
     
     setIsLoading(false);
@@ -134,19 +136,19 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Personal Information</DialogTitle>
+          <DialogTitle>{t('personalInformation')}</DialogTitle>
           <DialogDescription>
-            Update your personal information and profile settings.
+            {t('updatePersonalInfo')}
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{t('name')}</Label>
             <Input
               id="name"
               name="name"
-              placeholder="Your name"
+              placeholder={t('yourName')}
               required
               value={formData.name}
               onChange={handleChange}
@@ -163,11 +165,11 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
               disabled
               className="bg-gray-100"
             />
-            <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+            <p className="text-xs text-muted-foreground">{t('emailCannotBeChanged')}</p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of Birth</Label>
+            <Label htmlFor="dateOfBirth">{t('dateOfBirth')}</Label>
             <Input
               id="dateOfBirth"
               name="dateOfBirth"
@@ -179,25 +181,25 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
           </div>
           
           <div className="space-y-3">
-            <Label>Gender</Label>
+            <Label>{t('gender')}</Label>
             <RadioGroup value={formData.gender} onValueChange={handleGenderChange}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="male" id="male-edit" />
-                <Label htmlFor="male-edit">Male</Label>
+                <Label htmlFor="male-edit">{t('male')}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="female" id="female-edit" />
-                <Label htmlFor="female-edit">Female</Label>
+                <Label htmlFor="female-edit">{t('female')}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="other" id="other-edit" />
-                <Label htmlFor="other-edit">Other</Label>
+                <Label htmlFor="other-edit">{t('other')}</Label>
               </div>
             </RadioGroup>
           </div>
           
           <div className="space-y-2">
-            <Label>Avatar</Label>
+            <Label>{t('avatar')}</Label>
             {!isEditingAvatar ? (
               <div className="flex items-center space-x-3">
                 <Avatar className="w-16 h-16">
@@ -213,7 +215,7 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
                   onClick={() => setIsEditingAvatar(true)}
                 >
                   <Edit3 className="h-4 w-4 mr-2" />
-                  Change Avatar
+                  {t('changeAvatar')}
                 </Button>
               </div>
             ) : (
@@ -229,7 +231,7 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
                     size="sm"
                     onClick={() => setIsEditingAvatar(false)}
                   >
-                    Done
+                    {t('done')}
                   </Button>
                 </div>
               </div>
@@ -239,10 +241,10 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isLoading} className="love-button">
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isLoading ? t('saving') : t('saveChanges')}
           </Button>
         </DialogFooter>
       </DialogContent>
