@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import AuthForm from "@/components/auth/AuthForm";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Carousel,
   CarouselContent,
@@ -36,6 +37,7 @@ import Eri from "@/components/mascot/Eri";
 const Welcome = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
   const [showAuthForm, setShowAuthForm] = useState<"login" | "register" | null>(null);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -43,11 +45,10 @@ const Welcome = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const userData = localStorage.getItem("eralove-user");
-    if (userData) {
+    if (!isLoading && isAuthenticated) {
       navigate("/dashboard");
     }
-  }, [navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   useEffect(() => {
     if (!api) {

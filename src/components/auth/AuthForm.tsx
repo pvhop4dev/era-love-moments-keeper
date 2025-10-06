@@ -7,11 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Eri from "@/components/mascot/Eri";
 import AvatarSelector from "@/components/auth/AvatarSelector";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import authService from "@/services/auth.service";
+import { useAuth } from "@/contexts/AuthContext";
+import { AxiosError } from "axios";
 
 interface FormData {
   name?: string;
@@ -25,19 +27,6 @@ interface FormData {
   avatar?: string;
 }
 
-interface User {
-  id: string;
-  name: string;
-  partnerName?: string;
-  email: string;
-  passwordHash: string;
-  anniversaryDate?: string;
-  dateOfBirth?: string;
-  gender?: "male" | "female" | "other";
-  avatar?: string;
-  createdAt: string;
-}
-
 interface AuthFormProps {
   defaultTab?: "login" | "register";
 }
@@ -45,6 +34,7 @@ interface AuthFormProps {
 const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     name: "",
     partnerName: "",
@@ -108,99 +98,80 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     setRegisterStep(1);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Get users from storage
-      const users: User[] = JSON.parse(localStorage.getItem("eralove-users") || "[]");
+      const response = await authService.login({
+        email: formData.email,
+        password: formData.password,
+      });
       
-      // Find user by email
-      const user = users.find(u => u.email.toLowerCase() === formData.email.toLowerCase());
-      
-      if (!user) {
-        toast.error(t('userNotFound'));
-        setIsLoading(false);
-        return;
-      }
-      
-      // In a real app, we would hash and compare passwords
-      if (user.passwordHash !== formData.password) {
-        toast.error(t('invalidPassword'));
-        setIsLoading(false);
-        return;
-      }
-      
-      // Store current user
-      localStorage.setItem("eralove-user", JSON.stringify({
-        name: user.name,
-        partnerName: user.partnerName || "",
-        email: user.email,
-        anniversaryDate: user.anniversaryDate || "",
-        dateOfBirth: user.dateOfBirth || ""
-      }));
+      // Update auth context
+      authLogin(response.user, response.access_token);
       
       toast.success(t('loginSuccess'));
       navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      toast.error(t('loginError'));
+      
+      if (error instanceof AxiosError) {
+        const message = error.response?.data?.message || error.response?.data?.error;
+        if (error.response?.status === 401) {
+          toast.error(message || t('invalidPassword'));
+        } else {
+          toast.error(message || t('loginError'));
+        }
+      } else {
+        toast.error(t('loginError'));
+      }
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Get existing users
-      const users: User[] = JSON.parse(localStorage.getItem("eralove-users") || "[]");
-      
-      // Check if email already exists
-      if (users.some(u => u.email.toLowerCase() === formData.email.toLowerCase())) {
-        toast.error(t('emailExists'));
-        setIsLoading(false);
-        return;
-      }
-      
-      // Create new user
-      const newUser: User = {
-        id: uuidv4(),
+      const userData = await authService.register({
         name: formData.name || "",
         email: formData.email,
-        passwordHash: formData.password, // In a real app, this would be hashed
+        password: formData.password,
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
         avatar: formData.avatar,
-        createdAt: new Date().toISOString()
-      };
+      });
       
-      // Add to users collection
-      users.push(newUser);
-      localStorage.setItem("eralove-users", JSON.stringify(users));
+      // Login after successful registration
+      const loginResponse = await authService.login({
+        email: formData.email,
+        password: formData.password,
+      });
       
-      // Set as current user
-      localStorage.setItem("eralove-user", JSON.stringify({
-        name: newUser.name,
-        partnerName: "",
-        email: newUser.email,
-        anniversaryDate: "",
-        dateOfBirth: newUser.dateOfBirth || "",
-        gender: newUser.gender,
-        avatar: newUser.avatar
-      }));
+      // Update auth context
+      authLogin(loginResponse.user, loginResponse.access_token);
       
       toast.success(t('registrationSuccess'));
       navigate("/dashboard");
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error(t('registrationError'));
+      
+      if (error instanceof AxiosError) {
+        const message = error.response?.data?.message || error.response?.data?.error;
+        if (error.response?.status === 409) {
+          toast.error(message || t('emailExists'));
+        } else {
+          toast.error(message || t('registrationError'));
+        }
+      } else {
+        toast.error(t('registrationError'));
+      }
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const getEriMessage = () => {
