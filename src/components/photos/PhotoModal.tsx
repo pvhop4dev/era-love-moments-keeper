@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Upload, MapPin } from "lucide-react";
+import { Upload, MapPin, Loader2 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { useLanguage } from "@/contexts/LanguageContext";
+import uploadService from "@/services/upload.service";
+import photoService from "@/services/photo.service";
 
 export interface PhotoData {
   id: string;
@@ -37,6 +39,7 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGeocodingLocation, setIsGeocodingLocation] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
@@ -135,24 +138,6 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
     }
   };
 
-  const uploadImageToLocalStorage = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          // Store the data URL in localStorage
-          const imageKey = `eralove-photo-${Date.now()}`;
-          localStorage.setItem(imageKey, event.target.result as string);
-          resolve(event.target.result as string);
-        } else {
-          reject(new Error("Failed to read file"));
-        }
-      };
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-  };
-  
   const handleSave = async () => {
     // Validate inputs
     if (!title.trim()) {
@@ -161,53 +146,53 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
     }
     
     // If we have neither a URL nor a file, show error
-    if (!imageUrl && !selectedFile) {
+    if (!selectedFile) {
       toast.error(t('imageRequired'));
       return;
     }
     
+    setIsUploading(true);
+    
     try {
-      let finalImageUrl = imageUrl;
+      // Step 1: Upload file to get file_path
+      const uploadResult = await uploadService.uploadPhoto(selectedFile);
       
-      // If a file was selected, upload it and get the URL
-      if (selectedFile) {
-        finalImageUrl = await uploadImageToLocalStorage(selectedFile);
-      }
-
+      // Step 2: Create photo with file_path
       const formattedDate = selectedDate 
         ? selectedDate.toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
 
-      const photoData: PhotoData = {
-        id: photo?.id || `photo-${uuidv4()}`,
-        title,
-        description,
+      const photoData = await photoService.createPhoto({
+        filePath: uploadResult.filePath,
+        title: title.trim(),
+        description: description.trim(),
         date: formattedDate,
-        imageUrl: finalImageUrl,
+        location: location || undefined,
+        isPrivate: false,
+      });
+
+      // Convert to local PhotoData format for compatibility
+      const localPhotoData: PhotoData = {
+        id: photoData.id,
+        title: photoData.title,
+        description: photoData.description || "",
+        date: formattedDate,
+        imageUrl: uploadResult.url,
         location: location || undefined,
         coordinates: coordinates || undefined
       };
       
-      onSave(photoData);
+      onSave(localPhotoData);
       onClose();
       toast.success(photo ? t('photoUpdated') : t('photoAdded'));
     } catch (error) {
       console.error("Error saving photo:", error);
       toast.error(t('errorSavingPhoto'));
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImageUrl(e.target.value);
-    // If URL is changed, clear selected file
-    if (e.target.value) {
-      setSelectedFile(null);
-      if (previewUrl && previewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      setPreviewUrl(e.target.value);
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -272,9 +257,10 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
                   variant="outline" 
                   className="flex items-center gap-2"
                   onClick={handleSelectFileClick}
+                  disabled={isUploading}
                 >
                   <Upload className="h-4 w-4" />
-                  {t('uploadFromDevice')}
+                  {selectedFile ? selectedFile.name : t('uploadFromDevice')}
                 </Button>
                 <input
                   type="file"
@@ -282,17 +268,6 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
                   onChange={handleFileChange}
                   accept="image/*"
                   className="hidden"
-                />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">{t('orUseUrl')}:</span>
-                <Input
-                  id="imageUrl"
-                  value={imageUrl}
-                  onChange={handleUrlChange}
-                  placeholder={t('enterImageUrl')}
-                  className="flex-1"
                 />
               </div>
               
@@ -317,12 +292,14 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
           <Button 
             variant="outline" 
             onClick={onClose}
+            disabled={isUploading}
             className="border-love-200 hover:bg-love-50"
           >
             {t('cancel')}
           </Button>
-          <Button onClick={handleSave} className="love-button">
-            {photo ? t('updatePhoto') : t('savePhoto')}
+          <Button onClick={handleSave} className="love-button" disabled={isUploading}>
+            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isUploading ? 'Đang tải lên...' : (photo ? t('updatePhoto') : t('savePhoto'))}
           </Button>
         </DialogFooter>
       </DialogContent>

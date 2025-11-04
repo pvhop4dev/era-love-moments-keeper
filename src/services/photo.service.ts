@@ -15,7 +15,7 @@ export interface PhotoResponse {
 }
 
 export interface CreatePhotoRequest {
-  file_path: string;  // Path from upload endpoint
+  file_path: string;  // Path from upload endpoint (snake_case for backend)
   title: string;
   description?: string;
   tags?: string[];
@@ -31,7 +31,7 @@ export interface UpdatePhotoRequest {
 }
 
 export interface PhotoListResponse {
-  data: PhotoResponse[];
+  photos: PhotoResponse[];
   total: number;
   page: number;
   limit: number;

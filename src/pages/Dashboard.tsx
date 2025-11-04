@@ -10,18 +10,22 @@ import LoveIdeas from "@/components/suggestions/LoveIdeas";
 import SettingsMenu from "@/components/settings/SettingsMenu";
 import ThemeSettingsModal from "@/components/settings/ThemeSettingsModal";
 import PersonalInfoModal from "@/components/settings/PersonalInfoModal";
+import FirstTimeSetupModal from "@/components/settings/FirstTimeSetupModal";
 import MatchNotification from "@/components/match/MatchNotification";
 import MessagesSection from "@/components/messages/MessagesSection";
 import LoveMap from "@/components/map/LoveMap";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Calendar as CalendarIcon, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { getActiveMatch, getPartnerDetails } from "@/utils/matchUtils";
 import AnonymousChat from "@/components/chat/AnonymousChat";
+import photoService from "@/services/photo.service";
 
 const Dashboard = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [userData, setUserData] = useState({
     name: "",
     partnerName: "",
@@ -36,6 +40,7 @@ const Dashboard = () => {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [isThemeSettingsOpen, setIsThemeSettingsOpen] = useState(false);
   const [isPersonalInfoOpen, setIsPersonalInfoOpen] = useState(false);
+  const [isFirstTimeSetupOpen, setIsFirstTimeSetupOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventData | undefined>(undefined);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoData | undefined>(undefined);
@@ -61,26 +66,33 @@ const Dashboard = () => {
         dateOfBirth: parsedUser.dateOfBirth || ""
       });
       
-      // Check if user has an active match
-      if (parsedUser.email) {
-        const activeMatch = getActiveMatch(parsedUser.email);
-        setHasActiveMatch(!!activeMatch);
-        
-        // If there's an active match, get partner details
-        if (activeMatch) {
-          const partner = getPartnerDetails(parsedUser.email);
-          if (partner) {
-            setPartnerDetails({
-              name: partner.name,
-              email: partner.email,
-              anniversaryDate: partner.anniversaryDate,
-              dateOfBirth: "" // Default empty string for partner's dateOfBirth
-            });
-          }
-        }
+      // Check if user needs to set avatar (first-time login)
+      if (!parsedUser.avatar) {
+        setIsFirstTimeSetupOpen(true);
       }
     }
+  }, []);
+  
+  // Separate effect to watch for avatar changes from AuthContext
+  useEffect(() => {
+    if (user && user.avatar && isFirstTimeSetupOpen) {
+      // Close the modal if avatar was just set
+      setIsFirstTimeSetupOpen(false);
+    }
     
+    // Update userData when user changes in AuthContext
+    if (user) {
+      setUserData(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        dateOfBirth: user.dateOfBirth || prev.dateOfBirth,
+      }));
+    }
+  }, [user, isFirstTimeSetupOpen]);
+  
+  // Load events and photos in a separate effect
+  useEffect(() => {
     // Load events
     const storedEvents = localStorage.getItem("eralove-events");
     if (storedEvents) {
@@ -116,49 +128,107 @@ const Dashboard = () => {
       localStorage.setItem("eralove-events", JSON.stringify(sampleEvents));
     }
     
-    // Load photos
-    const storedPhotos = localStorage.getItem("eralove-photos");
-    if (storedPhotos) {
+    // Load photos from API
+    const loadPhotos = async () => {
       try {
-        setPhotos(JSON.parse(storedPhotos));
-      } catch (error) {
-        console.error("Error parsing photos:", error);
-      }
-    } else {
-      // Set sample photos for demo purposes
-      const samplePhotos: PhotoData[] = [
-        {
-          id: "photo-1",
-          title: "Dinner Selfie",
-          description: "Our first dinner together",
-          date: "2023-05-15", 
-          imageUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0"
-        },
-        {
-          id: "photo-2",
-          title: "Beach Sunset",
-          description: "Beautiful sunset at the beach",
-          date: "2023-06-20",
-          imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
-        },
-        {
-          id: "photo-3",
-          title: "Cafe Date",
-          description: "Morning coffee together",
-          date: "2023-06-20",
-          imageUrl: "https://images.unsplash.com/photo-1515621061946-eff1c2a352bd"
-        },
-        {
-          id: "photo-4",
-          title: "Ocean View",
-          description: "Looking at the waves",
-          date: "2023-06-20",
-          imageUrl: "https://images.unsplash.com/photo-1414609245224-afa02bfb3fda"
+        // Check if token exists
+        const token = localStorage.getItem('eralove-token');
+        console.log('Token exists:', !!token);
+        console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
+        
+        if (!token) {
+          console.warn('No authentication token found. User needs to login via API to access photos.');
+          console.info('Photos will be empty until user logs in with backend authentication.');
+          return;
         }
-      ];
+        
+        console.log('Calling photoService.getPhotos with token...');
+        
+        const response = await photoService.getPhotos(1, 100);
+        console.log('Photos from API:', response);
+        
+        // Get API base URL (already includes /api/v1)
+        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+        
+        // Convert API response to PhotoData format
+        const photosData: PhotoData[] = response.photos?.map((photo: any) => {
+          // Backend returns path like "photos/userid_timestamp.jpg"
+          // API client converts image_url → imageUrl automatically
+          // We need to build: http://localhost:8080/api/v1/files/photos/userid_timestamp.jpg
+          
+          console.log('Raw photo from API:', photo);
+          console.log('photo.imageUrl (camelCase):', photo.imageUrl);
+          console.log('apiBaseUrl:', apiBaseUrl);
+          
+          // Use photo.imageUrl (camelCase) because api-client converts it
+          const imageUrl = photo.imageUrl ? `${apiBaseUrl}/files/${photo.imageUrl}` : "";
+          
+          console.log('Built full imageUrl:', imageUrl);
+          
+          return {
+            id: photo.id,
+            title: photo.title,
+            description: photo.description || "",
+            date: photo.date ? new Date(photo.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            imageUrl: imageUrl,
+            location: photo.location,
+            coordinates: photo.coordinates
+          };
+        }) || [];
+        
+        console.log('Processed photos:', photosData);
+        
+        // Debug: Test first image URL
+        if (photosData.length > 0) {
+          console.log('Testing first image URL:', photosData[0].imageUrl);
+          fetch(photosData[0].imageUrl)
+            .then(res => {
+              console.log('Image fetch response:', res.status, res.statusText);
+              if (!res.ok) {
+                console.error('Failed to fetch image:', res.status);
+              }
+            })
+            .catch(err => console.error('Image fetch error:', err));
+        }
+        
+        setPhotos(photosData);
+      } catch (error) {
+        console.error("Error loading photos from API:", error);
+        // Fallback to localStorage if API fails
+        const storedPhotos = localStorage.getItem("eralove-photos");
+        if (storedPhotos) {
+          try {
+            setPhotos(JSON.parse(storedPhotos));
+          } catch (error) {
+            console.error("Error parsing photos:", error);
+          }
+        }
+      }
+    };
+    
+    loadPhotos();
       
-      setPhotos(samplePhotos);
-      localStorage.setItem("eralove-photos", JSON.stringify(samplePhotos));
+    // Check if user has an active match
+    const storedUser = localStorage.getItem("eralove-user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser.email) {
+        const activeMatch = getActiveMatch(parsedUser.email);
+        setHasActiveMatch(!!activeMatch);
+        
+        // If there's an active match, get partner details
+        if (activeMatch) {
+          const partner = getPartnerDetails(parsedUser.email);
+          if (partner) {
+            setPartnerDetails({
+              name: partner.name,
+              email: partner.email,
+              anniversaryDate: partner.anniversaryDate,
+              dateOfBirth: "" // Default empty string for partner's dateOfBirth
+            });
+          }
+        }
+      }
     }
   }, []);
 
@@ -250,7 +320,9 @@ const Dashboard = () => {
   const getPhotosForSelectedDate = () => {
     if (!selectedDate) return [];
     const dateStr = selectedDate.toISOString().split("T")[0];
-    return photos.filter(photo => photo.date === dateStr);
+    const filtered = photos.filter(photo => photo.date === dateStr);
+    console.log('Selected date:', dateStr, 'Filtered photos:', filtered.length, 'Total photos:', photos.length);
+    return filtered;
   };
 
   const handleUnpair = () => {
@@ -305,6 +377,35 @@ const Dashboard = () => {
         />
       </div>
       
+      {/* Debug: Show all photos */}
+      {photos.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>All Photos ({photos.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-4 gap-4">
+              {photos.map((photo) => (
+                <div key={photo.id} className="relative">
+                  <img
+                    src={photo.imageUrl}
+                    alt={photo.title}
+                    className="w-full h-32 object-cover rounded-lg"
+                    onError={(e) => {
+                      console.error('Image failed to load:', photo.imageUrl);
+                      console.error('Expected format: http://localhost:8080/api/v1/files/photos/...');
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  <p className="text-xs mt-1 truncate">{photo.title}</p>
+                  <p className="text-xs text-gray-500">{photo.date}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* First Row */}
         <div className="md:col-span-2">
@@ -420,6 +521,12 @@ const Dashboard = () => {
         isOpen={isPersonalInfoOpen}
         onClose={() => setIsPersonalInfoOpen(false)}
         userEmail={userData.email}
+      />
+      
+      {/* First Time Setup Modal */}
+      <FirstTimeSetupModal
+        isOpen={isFirstTimeSetupOpen}
+        onClose={() => setIsFirstTimeSetupOpen(false)}
       />
       
       {/* Anonymous Chat */}

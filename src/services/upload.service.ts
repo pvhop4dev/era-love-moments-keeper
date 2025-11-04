@@ -1,10 +1,10 @@
 import apiClient from '@/lib/api-client';
 
 export interface UploadFileResponse {
-  file_path: string;
-  file_name: string;
-  file_size: number;
-  content_type: string;
+  filePath: string;
+  fileName: string;
+  fileSize: number;
+  contentType: string;
   url: string;
   message: string;
 }
@@ -60,7 +60,7 @@ class UploadService {
    */
   async deleteFile(filePath: string): Promise<void> {
     await apiClient.delete('/upload', {
-      data: { file_path: filePath },
+      data: { filePath },
     });
   }
 

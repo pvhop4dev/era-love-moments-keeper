@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -9,8 +10,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Eri from "@/components/mascot/Eri";
-import AvatarSelector from "@/components/auth/AvatarSelector";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import authService from "@/services/auth.service";
 import { useAuth } from "@/contexts/AuthContext";
 import { AxiosError } from "axios";
@@ -24,7 +23,6 @@ interface FormData {
   anniversaryDate?: string;
   dateOfBirth?: string;
   gender?: "male" | "female" | "other";
-  avatar?: string;
 }
 
 interface AuthFormProps {
@@ -44,12 +42,10 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     anniversaryDate: "",
     dateOfBirth: "",
     gender: undefined,
-    avatar: "",
   });
   
   const [isLoading, setIsLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState(defaultTab);
-  const [registerStep, setRegisterStep] = useState(1);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -65,38 +61,13 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     });
   };
 
-  const handleAvatarChange = (avatar: string) => {
-    setFormData({
-      ...formData,
-      avatar,
-    });
-  };
 
   const handleTabChange = (value: string) => {
     if (value === "login" || value === "register") {
       setCurrentTab(value);
-      setRegisterStep(1); // Reset to step 1 when switching tabs
     }
   };
 
-  const handleNextStep = () => {
-    // Validate step 1 fields
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword || !formData.dateOfBirth || !formData.gender) {
-      toast.error("Vui lòng điền đầy đủ thông tin");
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast.error(t('passwordMismatch'));
-      return;
-    }
-
-    setRegisterStep(2);
-  };
-
-  const handlePrevStep = () => {
-    setRegisterStep(1);
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +80,7 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
       });
       
       // Update auth context
-      authLogin(response.user, response.access_token);
+      authLogin(response.user, response.accessToken);
       
       toast.success(t('loginSuccess'));
       navigate("/dashboard");
@@ -133,6 +104,18 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate fields
+    if (!formData.name || !formData.dateOfBirth || !formData.gender) {
+      toast.error("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error(t('passwordMismatch'));
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -142,7 +125,6 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
         password: formData.password,
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
-        avatar: formData.avatar,
       });
       
       // Login after successful registration
@@ -152,7 +134,7 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
       });
       
       // Update auth context
-      authLogin(loginResponse.user, loginResponse.access_token);
+      authLogin(loginResponse.user, loginResponse.accessToken);
       
       toast.success(t('registrationSuccess'));
       navigate("/dashboard");
@@ -178,11 +160,7 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
     if (currentTab === "login") {
       return "Welcome back! I'm so excited to see you again. Let's continue your love journey together! 💕";
     } else {
-      if (registerStep === 1) {
-        return "Hi there! I'm Eri, your love messenger! Let's start by getting to know you better. Please fill in your basic information! ✨";
-      } else {
-        return "Great! Now let's choose your avatar. Pick one that represents you best, or upload your own photo! 🎨";
-      }
+      return "Hi there! I'm Eri, your love messenger! Let's start by getting to know you better. Please fill in your information to begin! ✨";
     }
   };
 
@@ -246,133 +224,103 @@ const AuthForm = ({ defaultTab = "login" }: AuthFormProps) => {
           <Card>
             <CardHeader>
               <CardTitle className="text-xl text-center text-love-700">
-                Start Your Love Journey {registerStep === 2 && "- Choose Avatar"}
+                Start Your Love Journey
               </CardTitle>
               <CardDescription className="text-center">
-                {registerStep === 1 
-                  ? "Step 1 of 2: Tell us about yourself"
-                  : "Step 2 of 2: Choose your avatar"
-                }
+                Tell us about yourself to begin
               </CardDescription>
             </CardHeader>
 
-            {registerStep === 1 ? (
-              <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Your Name</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="Your name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                    <Input
-                      id="dateOfBirth"
-                      name="dateOfBirth"
-                      type="date"
-                      required
-                      value={formData.dateOfBirth}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label>Gender</Label>
-                    <RadioGroup value={formData.gender} onValueChange={handleGenderChange}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="male" id="male" />
-                        <Label htmlFor="male">Male</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="female" id="female" />
-                        <Label htmlFor="female">Female</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="other" id="other" />
-                        <Label htmlFor="other">Other</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email-register">Email</Label>
-                    <Input
-                      id="email-register"
-                      name="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-register">Password</Label>
-                    <Input
-                      id="password-register"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      value={formData.password}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full love-button">
-                    Next Step
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </form>
-            ) : (
-              <form onSubmit={handleRegister}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Choose Your Avatar</Label>
-                    <AvatarSelector onAvatarChange={handleAvatarChange} selectedAvatar={formData.avatar} />
-                  </div>
-                  <p className="text-sm text-muted-foreground text-center">
-                    Partner name and anniversary date can be set after connecting with your partner.
-                  </p>
-                </CardContent>
-                <CardFooter className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handlePrevStep}
-                    className="flex-1"
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="flex-1 love-button" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Creating account..." : "Complete Registration"}
-                  </Button>
-                </CardFooter>
-              </form>
-            )}
+            <form onSubmit={handleRegister}>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Your Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <DateInput
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    required
+                    value={formData.dateOfBirth}
+                    onChange={(value) => setFormData({ ...formData, dateOfBirth: value })}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label>Gender</Label>
+                  <RadioGroup value={formData.gender} onValueChange={handleGenderChange}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="male" id="male" />
+                      <Label htmlFor="male">Male</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="female" id="female" />
+                      <Label htmlFor="female">Female</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="other" id="other" />
+                      <Label htmlFor="other">Other</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email-register">Email</Label>
+                  <Input
+                    id="email-register"
+                    name="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password-register">Password</Label>
+                  <Input
+                    id="password-register"
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  You'll be able to set your avatar after registration
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  type="submit" 
+                  className="w-full love-button" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating account..." : "Create Account"}
+                </Button>
+              </CardFooter>
+            </form>
           </Card>
         </TabsContent>
       </Tabs>

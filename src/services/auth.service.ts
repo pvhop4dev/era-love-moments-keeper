@@ -30,10 +30,10 @@ export interface UserResponse {
 
 export interface LoginResponse {
   user: UserResponse;
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  expires_in: number;
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
   message: string;
 }
 
@@ -58,10 +58,15 @@ class AuthService {
   async login(data: LoginRequest): Promise<LoginResponse> {
     const response = await apiClient.post<LoginResponse>('/auth/login', data);
     
-    // Store token and user data
-    if (response.data.access_token) {
-      localStorage.setItem('eralove-token', response.data.access_token);
+    // Store tokens and user data (response is already transformed to camelCase)
+    if (response.data.accessToken) {
+      localStorage.setItem('eralove-token', response.data.accessToken);
       localStorage.setItem('eralove-user', JSON.stringify(response.data.user));
+      
+      // Store refresh token if provided
+      if (response.data.refreshToken) {
+        localStorage.setItem('eralove-refresh-token', response.data.refreshToken);
+      }
     }
     
     return response.data;
@@ -73,7 +78,8 @@ class AuthService {
   async logout(refreshToken?: string): Promise<void> {
     try {
       if (refreshToken) {
-        await apiClient.post('/auth/logout', { refresh_token: refreshToken });
+        // Use camelCase - will be converted to snake_case by interceptor
+        await apiClient.post('/auth/logout', { refreshToken });
       }
     } finally {
       // Clear local storage regardless of API call result
@@ -107,10 +113,50 @@ class AuthService {
   }
 
   /**
-   * Get stored token
+   * Get stored access token
    */
   getToken(): string | null {
     return localStorage.getItem('eralove-token');
+  }
+
+  /**
+   * Get stored refresh token
+   */
+  getRefreshToken(): string | null {
+    return localStorage.getItem('eralove-refresh-token');
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  async refreshAccessToken(): Promise<LoginResponse | null> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return null;
+    }
+
+    try {
+      const response = await apiClient.post<LoginResponse>('/auth/refresh', {
+        refreshToken,
+      });
+
+      // Update stored tokens
+      if (response.data.accessToken) {
+        localStorage.setItem('eralove-token', response.data.accessToken);
+        localStorage.setItem('eralove-user', JSON.stringify(response.data.user));
+        
+        if (response.data.refreshToken) {
+          localStorage.setItem('eralove-refresh-token', response.data.refreshToken);
+        }
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+      // Clear tokens on refresh failure
+      this.logout();
+      return null;
+    }
   }
 }
 

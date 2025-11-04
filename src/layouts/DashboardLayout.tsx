@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { LogOut, BellDot, Heart, Mail, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { getActiveMatch, getPendingMatchRequests } from "@/utils/matchUtils";
 import MatchNotification from "@/components/match/MatchNotification";
 
@@ -22,71 +23,51 @@ interface UserData {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { t } = useLanguage();
+  const { user, logout: authLogout, isAuthenticated } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [hasActiveMatch, setHasActiveMatch] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<number>(0);
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem("eralove-user");
-    
-    if (!storedUser) {
-      toast.error("Please login to access your love journey");
-      navigate("/");
+    // Check if user is logged in via AuthContext
+    if (!isAuthenticated || !user) {
+      navigate("/", { replace: true });
       return;
     }
     
-    try {
-      const parsedUser = JSON.parse(storedUser);
-      setUserData(parsedUser);
-      
-      // Check if user has an active match
-      if (parsedUser.email) {
-        const activeMatch = getActiveMatch(parsedUser.email);
-        setHasActiveMatch(!!activeMatch);
-        
-        // Check for pending match requests
-        const requests = getPendingMatchRequests(parsedUser.email);
-        setPendingRequests(requests.length);
-      }
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      toast.error("Error loading your profile");
-      navigate("/");
-    }
+    setUserData({
+      name: user.name,
+      email: user.email,
+      partnerName: user.partnerName || '',
+      anniversaryDate: user.anniversaryDate || '',
+    });
     
-    // Check for custom background
-    const storedSettings = localStorage.getItem("eralove-settings");
-    if (storedSettings) {
-      try {
-        const { backgroundImage } = JSON.parse(storedSettings);
-        if (backgroundImage) {
-          document.body.style.backgroundImage = `url(${backgroundImage})`;
-          document.body.style.backgroundSize = "cover";
-          document.body.style.backgroundPosition = "center";
-          document.body.style.backgroundAttachment = "fixed";
-        }
-      } catch (error) {
-        console.error("Error loading background settings:", error);
-      }
+    // Check if user has an active match
+    if (user.email) {
+      const activeMatch = getActiveMatch(user.email);
+      setHasActiveMatch(!!activeMatch);
+      
+      // Check for pending match requests
+      const requests = getPendingMatchRequests(user.email);
+      setPendingRequests(requests.length);
     }
     
     // Check for new requests periodically
     const interval = setInterval(() => {
-      if (userData?.email) {
-        const requests = getPendingMatchRequests(userData.email);
+      if (user?.email) {
+        const requests = getPendingMatchRequests(user.email);
         setPendingRequests(requests.length);
       }
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [navigate, userData?.email]);
+  }, [isAuthenticated, user, navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("eralove-user");
+  const handleLogout = async () => {
+    await authLogout();
     toast.success("Logged out successfully");
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   if (!userData) {

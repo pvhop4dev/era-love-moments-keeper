@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -14,9 +15,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { User, Edit3 } from "lucide-react";
+import { User, Edit3, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import AvatarSelector from "@/components/auth/AvatarSelector";
+import userService from "@/services/user.service";
 
 interface PersonalInfoModalProps {
   isOpen: boolean;
@@ -34,6 +37,7 @@ interface UserData {
 
 const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProps) => {
   const { t } = useLanguage();
+  const { updateUser } = useAuth();
   const [formData, setFormData] = useState<UserData>({
     name: "",
     email: "",
@@ -42,25 +46,33 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
     avatar: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
 
   useEffect(() => {
-    if (isOpen && userEmail) {
-      // Load user data from localStorage
-      const users = JSON.parse(localStorage.getItem("eralove-users") || "[]");
-      const currentUser = users.find((user: any) => user.email === userEmail);
-      
-      if (currentUser) {
-        setFormData({
-          name: currentUser.name || "",
-          email: currentUser.email || "",
-          dateOfBirth: currentUser.dateOfBirth || "",
-          gender: currentUser.gender,
-          avatar: currentUser.avatar || "",
-        });
-      }
+    if (isOpen) {
+      loadUserProfile();
     }
-  }, [isOpen, userEmail]);
+  }, [isOpen]);
+  
+  const loadUserProfile = async () => {
+    setIsFetching(true);
+    try {
+      const profile = await userService.getProfile();
+      setFormData({
+        name: profile.name || "",
+        email: profile.email || "",
+        dateOfBirth: profile.dateOfBirth || "",
+        gender: profile.gender as "male" | "female" | "other" | undefined,
+        avatar: profile.avatar || "",
+      });
+    } catch (error) {
+      console.error("Error loading profile:", error);
+      toast.error("Failed to load profile information");
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -92,44 +104,26 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
     setIsLoading(true);
     
     try {
-      // Update users array
-      const users = JSON.parse(localStorage.getItem("eralove-users") || "[]");
-      const updatedUsers = users.map((user: any) => {
-        if (user.email === userEmail) {
-          return {
-            ...user,
-            name: formData.name,
-            dateOfBirth: formData.dateOfBirth,
-            gender: formData.gender,
-            avatar: formData.avatar,
-          };
-        }
-        return user;
+      // Update profile via API
+      const updatedUser = await userService.updateProfile({
+        name: formData.name,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        avatar: formData.avatar,
       });
       
-      localStorage.setItem("eralove-users", JSON.stringify(updatedUsers));
-      
-      // Update current user session
-      const currentUser = JSON.parse(localStorage.getItem("eralove-user") || "{}");
-      if (currentUser.email === userEmail) {
-        const updatedCurrentUser = {
-          ...currentUser,
-          name: formData.name,
-          dateOfBirth: formData.dateOfBirth,
-          gender: formData.gender,
-          avatar: formData.avatar,
-        };
-        localStorage.setItem("eralove-user", JSON.stringify(updatedCurrentUser));
-      }
+      // Update auth context
+      updateUser(updatedUser);
       
       toast.success(t('personalInfoUpdated'));
+      setIsEditingAvatar(false);
       onClose();
     } catch (error) {
       console.error("Error updating personal info:", error);
       toast.error(t('failedUpdatePersonalInfo'));
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
@@ -142,6 +136,11 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
           </DialogDescription>
         </DialogHeader>
         
+        {isFetching ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-love-500" />
+          </div>
+        ) : (
         <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           <div className="space-y-2">
             <Label htmlFor="name">{t('name')}</Label>
@@ -170,13 +169,12 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
           
           <div className="space-y-2">
             <Label htmlFor="dateOfBirth">{t('dateOfBirth')}</Label>
-            <Input
+            <DateInput
               id="dateOfBirth"
               name="dateOfBirth"
-              type="date"
               required
               value={formData.dateOfBirth}
-              onChange={handleChange}
+              onChange={(value) => setFormData({ ...formData, dateOfBirth: value })}
             />
           </div>
           
@@ -238,6 +236,7 @@ const PersonalInfoModal = ({ isOpen, onClose, userEmail }: PersonalInfoModalProp
             )}
           </div>
         </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>

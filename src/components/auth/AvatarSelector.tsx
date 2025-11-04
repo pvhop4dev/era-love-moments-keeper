@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Upload, User } from "lucide-react";
+import { Upload, User, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import uploadService from "@/services/upload.service";
 
 interface AvatarSelectorProps {
   onAvatarChange: (avatar: string) => void;
@@ -13,6 +15,7 @@ interface AvatarSelectorProps {
 
 const AvatarSelector = ({ onAvatarChange, selectedAvatar }: AvatarSelectorProps) => {
   const [uploadedAvatar, setUploadedAvatar] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
 
   // Predefined chibi avatars
   const chibiAvatars = [
@@ -24,16 +27,22 @@ const AvatarSelector = ({ onAvatarChange, selectedAvatar }: AvatarSelectorProps)
     "/lovable-uploads/chibi-6.png"
   ];
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setUploadedAvatar(result);
-        onAvatarChange(result);
-      };
-      reader.readAsDataURL(file);
+      setIsUploading(true);
+      try {
+        // Upload to server
+        const uploadResult = await uploadService.uploadAvatar(file);
+        setUploadedAvatar(uploadResult.url);
+        onAvatarChange(uploadResult.url);
+        toast.success("Avatar uploaded successfully");
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        toast.error("Failed to upload avatar");
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -82,10 +91,19 @@ const AvatarSelector = ({ onAvatarChange, selectedAvatar }: AvatarSelectorProps)
           <Label className="text-sm font-medium">Or Upload Your Own</Label>
           <div className="mt-2">
             <Label htmlFor="avatar-upload" className="cursor-pointer">
-              <Button type="button" variant="outline" className="w-full" asChild>
+              <Button type="button" variant="outline" className="w-full" asChild disabled={isUploading}>
                 <span>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Photo
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Photo
+                    </>
+                  )}
                 </span>
               </Button>
             </Label>
@@ -95,6 +113,7 @@ const AvatarSelector = ({ onAvatarChange, selectedAvatar }: AvatarSelectorProps)
               accept="image/*"
               className="hidden"
               onChange={handleFileUpload}
+              disabled={isUploading}
             />
           </div>
         </div>
