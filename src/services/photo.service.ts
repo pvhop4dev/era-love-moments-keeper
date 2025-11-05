@@ -40,7 +40,17 @@ export interface PhotoListResponse {
 
 class PhotoService {
   /**
-   * Create a new photo with pre-uploaded file path
+   * Get presigned upload URL for direct MinIO upload
+   */
+  async getPresignedUploadUrl(filename: string): Promise<{ uploadUrl: string; key: string }> {
+    const response = await apiClient.post<{ uploadUrl: string; key: string }>('/photos/presigned-upload', {
+      filename,
+    });
+    return response.data;
+  }
+
+  /**
+   * Create a new photo with pre-uploaded file key
    */
   async createPhoto(data: CreatePhotoRequest): Promise<PhotoResponse> {
     const response = await apiClient.post<PhotoResponse>('/photos', data);

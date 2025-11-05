@@ -154,22 +154,45 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
     setIsUploading(true);
     
     try {
-      // Step 1: Upload file to get file_path
-      const uploadResult = await uploadService.uploadPhoto(selectedFile);
-      
-      // Step 2: Create photo with file_path
       const formattedDate = selectedDate 
         ? selectedDate.toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
 
+      // Step 1: Get presigned upload URL from backend
+      const presignedResponse = await photoService.getPresignedUploadUrl(selectedFile.name);
+      console.log('[PhotoModal] Presigned response:', presignedResponse);
+      
+      // Step 2: Upload file directly to MinIO using presigned URL
+      const uploadResponse = await fetch(presignedResponse.uploadUrl, {
+        method: 'PUT',
+        body: selectedFile,
+        headers: {
+          'Content-Type': selectedFile.type,
+        },
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
+      
+      console.log('[PhotoModal] File uploaded to MinIO successfully');
+      
+      // Step 3: Create photo record with the key from backend
       const photoData = await photoService.createPhoto({
-        filePath: uploadResult.filePath,
+        file_path: presignedResponse.key, // Use key from backend
         title: title.trim(),
         description: description.trim(),
         date: formattedDate,
         location: location || undefined,
-        isPrivate: false,
+        is_private: false,
       });
+
+      // Build correct image URL from backend response
+      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+      const imageUrl = photoData.imageUrl ? `${apiBaseUrl}/files/${photoData.imageUrl}` : "";
+
+      console.log('[PhotoModal] Photo created:', photoData);
+      console.log('[PhotoModal] Image URL:', imageUrl);
 
       // Convert to local PhotoData format for compatibility
       const localPhotoData: PhotoData = {
@@ -177,7 +200,7 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
         title: photoData.title,
         description: photoData.description || "",
         date: formattedDate,
-        imageUrl: uploadResult.url,
+        imageUrl: imageUrl,
         location: location || undefined,
         coordinates: coordinates || undefined
       };

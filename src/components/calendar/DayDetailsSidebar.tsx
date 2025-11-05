@@ -7,6 +7,7 @@ import { EventData } from "@/components/events/EventModal";
 import { PhotoData } from "@/components/photos/PhotoModal";
 import CalendarSuggestions from "./CalendarSuggestions";
 import AffiliateProducts from "@/components/affiliate/AffiliateProducts";
+import AuthenticatedImage from "@/components/common/AuthenticatedImage";
 
 interface DayDetailsSidebarProps {
   selectedDate: Date;
@@ -129,7 +130,7 @@ const DayDetailsSidebar = ({
                   onClick={() => onSelectPhoto(photo)}
                   className="relative cursor-pointer group"
                 >
-                  <img
+                  <AuthenticatedImage
                     src={photo.imageUrl}
                     alt={photo.title}
                     className="w-full h-20 object-cover rounded-lg group-hover:opacity-80 transition-opacity"

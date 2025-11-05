@@ -14,6 +14,7 @@ import FirstTimeSetupModal from "@/components/settings/FirstTimeSetupModal";
 import MatchNotification from "@/components/match/MatchNotification";
 import MessagesSection from "@/components/messages/MessagesSection";
 import LoveMap from "@/components/map/LoveMap";
+import AuthenticatedImage from "@/components/common/AuthenticatedImage";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Calendar as CalendarIcon, MapPin } from "lucide-react";
@@ -131,6 +132,9 @@ const Dashboard = () => {
     // Load photos from API
     const loadPhotos = async () => {
       try {
+        // Clear localStorage cache to force fresh data
+        localStorage.removeItem('eralove-photos');
+        
         // Check if token exists
         const token = localStorage.getItem('eralove-token');
         console.log('Token exists:', !!token);
@@ -142,13 +146,15 @@ const Dashboard = () => {
           return;
         }
         
-        console.log('Calling photoService.getPhotos with token...');
+        console.log('[Dashboard] Calling photoService.getPhotos with token...');
         
         const response = await photoService.getPhotos(1, 100);
-        console.log('Photos from API:', response);
+        console.log('[Dashboard] Photos from API:', response);
+        console.log('[Dashboard] Number of photos:', response.photos?.length);
         
         // Get API base URL (already includes /api/v1)
         const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+        console.log('[Dashboard] API Base URL:', apiBaseUrl);
         
         // Convert API response to PhotoData format
         const photosData: PhotoData[] = response.photos?.map((photo: any) => {
@@ -163,7 +169,8 @@ const Dashboard = () => {
           // Use photo.imageUrl (camelCase) because api-client converts it
           const imageUrl = photo.imageUrl ? `${apiBaseUrl}/files/${photo.imageUrl}` : "";
           
-          console.log('Built full imageUrl:', imageUrl);
+          console.log('[Dashboard] Built full imageUrl:', imageUrl);
+          console.log('[Dashboard] Expected format: http://localhost:8080/api/v1/files/photos/...');
           
           return {
             id: photo.id,
@@ -194,15 +201,8 @@ const Dashboard = () => {
         setPhotos(photosData);
       } catch (error) {
         console.error("Error loading photos from API:", error);
-        // Fallback to localStorage if API fails
-        const storedPhotos = localStorage.getItem("eralove-photos");
-        if (storedPhotos) {
-          try {
-            setPhotos(JSON.parse(storedPhotos));
-          } catch (error) {
-            console.error("Error parsing photos:", error);
-          }
-        }
+        // Don't fallback to localStorage - always use fresh data from API
+        setPhotos([]);
       }
     };
     
@@ -387,14 +387,12 @@ const Dashboard = () => {
             <div className="grid grid-cols-4 gap-4">
               {photos.map((photo) => (
                 <div key={photo.id} className="relative">
-                  <img
+                  <AuthenticatedImage
                     src={photo.imageUrl}
                     alt={photo.title}
                     className="w-full h-32 object-cover rounded-lg"
-                    onError={(e) => {
-                      console.error('Image failed to load:', photo.imageUrl);
-                      console.error('Expected format: http://localhost:8080/api/v1/files/photos/...');
-                      e.currentTarget.style.display = 'none';
+                    onError={(error) => {
+                      console.error('Image failed to load:', photo.imageUrl, error);
                     }}
                   />
                   <p className="text-xs mt-1 truncate">{photo.title}</p>

@@ -122,8 +122,8 @@ const Calendar = ({ onDateClick, events, selectedDate }: CalendarProps) => {
       </CardHeader>
       <CardContent className="pt-1 pb-3">
         <div className="grid grid-cols-7 gap-1 mb-1">
-          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day) => (
-            <div key={day} className="text-center text-xs font-medium text-muted-foreground">
+          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => (
+            <div key={`day-${index}`} className="text-center text-xs font-medium text-muted-foreground">
               {day}
             </div>
           ))}

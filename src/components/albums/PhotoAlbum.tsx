@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { PhotoData } from "@/components/photos/PhotoModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import AuthenticatedImage from "@/components/common/AuthenticatedImage";
 
 interface PhotoAlbumProps {
   photos: PhotoData[];
@@ -65,13 +66,11 @@ const PhotoAlbum = ({ photos, onSelectPhoto }: PhotoAlbumProps) => {
                     className="aspect-square overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-all hover:shadow-md"
                     onClick={() => openImageViewer(photo, index)}
                   >
-                    <img 
+                    <AuthenticatedImage
                       src={photo.imageUrl} 
                       alt={photo.title} 
                       className="h-full w-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://via.placeholder.com/400x400?text=Image+Not+Found";
-                      }}
+                      fallbackSrc="https://via.placeholder.com/400x400?text=Image+Not+Found"
                     />
                   </div>
                   <div 
@@ -126,14 +125,14 @@ const PhotoAlbum = ({ photos, onSelectPhoto }: PhotoAlbumProps) => {
               )}
             </div>
             
-            <img 
-              src={selectedImage || ""} 
-              alt="Selected memory"
-              className="max-h-[80vh] mx-auto object-contain rounded-lg"
-              onError={(e) => {
-                e.currentTarget.src = "https://via.placeholder.com/800x600?text=Image+Not+Found";
-              }}
-            />
+            {selectedImage && (
+              <AuthenticatedImage
+                src={selectedImage} 
+                alt="Selected memory"
+                className="max-h-[80vh] mx-auto object-contain rounded-lg"
+                fallbackSrc="https://via.placeholder.com/800x600?text=Image+Not+Found"
+              />
+            )}
             
             {currentPhotoIndex >= 0 && photos[currentPhotoIndex] && (
               <div className="bg-background/90 p-2 text-center">
