@@ -1,6 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { extractDateFromBackend, formatDateObjectForBackend } from "@/utils/datetimeUtils";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Heart, Circle } from "lucide-react";
 import { EventData } from "@/components/events/EventModal";
@@ -10,9 +11,10 @@ interface CalendarProps {
   onDateClick: (date: Date) => void;
   events: { date: string; title: string }[];
   selectedDate: Date | null;
+  photos?: { date: string }[];
 }
 
-const Calendar = ({ onDateClick, events, selectedDate }: CalendarProps) => {
+const Calendar = ({ onDateClick, events, selectedDate, photos = [] }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState<Date[]>([]);
 
@@ -66,23 +68,13 @@ const Calendar = ({ onDateClick, events, selectedDate }: CalendarProps) => {
   };
 
   const hasEvent = (date: Date) => {
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = extractDateFromBackend(formatDateObjectForBackend(date));
     return events.some(event => event.date === dateStr);
   };
 
   const hasPhoto = (date: Date) => {
-    // Get photos from localStorage to check for photo indicators
-    const storedPhotos = localStorage.getItem("eralove-photos");
-    if (storedPhotos) {
-      try {
-        const photos = JSON.parse(storedPhotos);
-        const dateStr = date.toISOString().split("T")[0];
-        return photos.some((photo: any) => photo.date === dateStr);
-      } catch (error) {
-        return false;
-      }
-    }
-    return false;
+    const dateStr = extractDateFromBackend(formatDateObjectForBackend(date));
+    return photos.some(photo => photo.date === dateStr);
   };
 
   const isCurrentMonth = (date: Date) => {

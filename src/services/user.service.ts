@@ -23,11 +23,15 @@ class UserService {
    * Update user profile
    */
   async updateProfile(data: UpdateUserRequest): Promise<UserResponse> {
+    console.log('[UserService] updateProfile called with data:', data);
     const response = await apiClient.put<ApiResponse<UserResponse>>('/users/profile', data);
+    console.log('[UserService] updateProfile response:', response.data);
+    console.log('[UserService] Updated user avatar:', response.data.data?.avatar);
     
     // Update local storage
     if (response.data.data) {
       localStorage.setItem('eralove-user', JSON.stringify(response.data.data));
+      console.log('[UserService] Updated user saved to localStorage');
     }
     
     return response.data.data!;

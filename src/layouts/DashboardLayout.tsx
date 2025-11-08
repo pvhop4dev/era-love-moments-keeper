@@ -7,7 +7,6 @@ import { LogOut, BellDot, Heart, Mail, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { getActiveMatch, getPendingMatchRequests } from "@/utils/matchUtils";
 import MatchNotification from "@/components/match/MatchNotification";
 
 interface DashboardLayoutProps {
@@ -26,7 +25,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, logout: authLogout, isAuthenticated } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [hasActiveMatch, setHasActiveMatch] = useState(false);
-  const [pendingRequests, setPendingRequests] = useState<number>(0);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -43,25 +41,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       anniversaryDate: user.anniversaryDate || '',
     });
     
-    // Check if user has an active match
-    if (user.email) {
-      const activeMatch = getActiveMatch(user.email);
-      setHasActiveMatch(!!activeMatch);
-      
-      // Check for pending match requests
-      const requests = getPendingMatchRequests(user.email);
-      setPendingRequests(requests.length);
-    }
-    
-    // Check for new requests periodically
-    const interval = setInterval(() => {
-      if (user?.email) {
-        const requests = getPendingMatchRequests(user.email);
-        setPendingRequests(requests.length);
-      }
-    }, 30000);
-    
-    return () => clearInterval(interval);
+    // Check if user has an active match from user data
+    setHasActiveMatch(!!user.partnerId);
   }, [isAuthenticated, user, navigate]);
 
   const handleLogout = async () => {
@@ -84,14 +65,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <span className="text-white font-semibold text-lg">EraLove</span>
-            {!hasActiveMatch && pendingRequests > 0 && (
-              <div className="relative">
-                <BellDot className="h-5 w-5 text-white" />
-                <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs bg-destructive text-destructive-foreground">
-                  {pendingRequests}
-                </Badge>
-              </div>
-            )}
           </div>
           
           <div className="hidden md:flex items-center gap-4 text-white">

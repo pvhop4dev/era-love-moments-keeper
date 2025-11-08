@@ -20,27 +20,29 @@ export interface EventResponse {
 export interface CreateEventRequest {
   title: string;
   description?: string;
-  eventDate: string;
-  eventTime?: string;
+  date: string;
+  time?: string;
   location?: string;
-  eventType?: string;
-  isRecurring?: boolean;
-  recurringPattern?: string;
+  event_type: string;
+  is_recurring?: boolean;
+  recurrence_rule?: string;
+  is_private?: boolean;
 }
 
 export interface UpdateEventRequest {
   title?: string;
   description?: string;
-  eventDate?: string;
-  eventTime?: string;
+  date?: string;
+  time?: string;
   location?: string;
-  eventType?: string;
-  isRecurring?: boolean;
-  recurringPattern?: string;
+  event_type?: string;
+  is_recurring?: boolean;
+  recurrence_rule?: string;
+  is_private?: boolean;
 }
 
 export interface EventListResponse {
-  data: EventResponse[];
+  events: EventResponse[];
   total: number;
   page: number;
   limit: number;
@@ -60,8 +62,15 @@ class EventService {
    * Create a new event
    */
   async createEvent(data: CreateEventRequest): Promise<EventResponse> {
-    const response = await apiClient.post<EventResponse>('/events', data);
-    return response.data;
+    console.log('[EventService] Creating event with data:', JSON.stringify(data, null, 2));
+    try {
+      const response = await apiClient.post<EventResponse>('/events', data);
+      console.log('[EventService] Create event response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('[EventService] Create event error:', error);
+      throw error;
+    }
   }
 
   /**

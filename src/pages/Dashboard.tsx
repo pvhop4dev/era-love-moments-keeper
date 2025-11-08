@@ -16,17 +16,20 @@ import MessagesSection from "@/components/messages/MessagesSection";
 import LoveMap from "@/components/map/LoveMap";
 import AuthenticatedImage from "@/components/common/AuthenticatedImage";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Calendar as CalendarIcon, MapPin } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar as CalendarIcon, MapPin, Heart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { getActiveMatch, getPartnerDetails } from "@/utils/matchUtils";
 import AnonymousChat from "@/components/chat/AnonymousChat";
-import photoService from "@/services/photo.service";
+import photoService from '@/services/photo.service';
+import eventService from '@/services/event.service';
+import userService from '@/services/user.service';
+import { formatDateTimeForBackend, extractDateFromBackend } from '@/utils/datetimeUtils';
+import { getAvatarUrl, getUserInitial } from '@/utils/avatarUtils';
 
 const Dashboard = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [userData, setUserData] = useState({
     name: "",
     partnerName: "",
@@ -54,25 +57,41 @@ const Dashboard = () => {
   } | null>(null);
   const [showAnonymousChat, setShowAnonymousChat] = useState(false);
   
+  // Refresh user profile on mount to ensure latest data
   useEffect(() => {
-    // Load user data
-    const storedUser = localStorage.getItem("eralove-user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUserData({
-        name: parsedUser.name || "",
-        partnerName: parsedUser.partnerName || "",
-        email: parsedUser.email || "",
-        anniversaryDate: parsedUser.anniversaryDate || "",
-        dateOfBirth: parsedUser.dateOfBirth || ""
-      });
-      
-      // Check if user needs to set avatar (first-time login)
-      if (!parsedUser.avatar) {
-        setIsFirstTimeSetupOpen(true);
+    const refreshUserProfile = async () => {
+      try {
+        console.log('[Dashboard] Refreshing user profile...');
+        const updatedUser = await userService.getProfile();
+        console.log('[Dashboard] Updated user profile:', updatedUser);
+        console.log('[Dashboard] User avatar from API:', updatedUser.avatar);
+        updateUser(updatedUser);
+      } catch (error) {
+        console.error('[Dashboard] Error refreshing user profile:', error);
       }
+    };
+    
+    if (user) {
+      refreshUserProfile();
     }
-  }, []);
+  }, []); // Run once on mount
+  
+  // Log user avatar whenever it changes
+  useEffect(() => {
+    if (user) {
+      console.log('[Dashboard] Current user:', user);
+      console.log('[Dashboard] Current user avatar:', user.avatar);
+      console.log('[Dashboard] Avatar URL will be:', getAvatarUrl(user.avatar));
+    }
+  }, [user?.avatar]);
+  
+  useEffect(() => {
+    // User data is loaded from AuthContext
+    // Check if user needs to set avatar (first-time login)
+    if (user && !user.avatar) {
+      setIsFirstTimeSetupOpen(true);
+    }
+  }, [user]);
   
   // Separate effect to watch for avatar changes from AuthContext
   useEffect(() => {
@@ -92,145 +111,113 @@ const Dashboard = () => {
     }
   }, [user, isFirstTimeSetupOpen]);
   
+  // Load events from API
+  const loadEvents = async () => {
+    try {
+      const token = localStorage.getItem('eralove-token');
+      if (!token) {
+        console.warn('[Dashboard] No token found for events');
+        return;
+      }
+
+      console.log('[Dashboard] Loading events from API...');
+      
+      const response = await eventService.getEvents({ page: 1, limit: 100 });
+      console.log('[Dashboard] Events from API:', response);
+      
+      // Convert to EventData format
+      const eventsData: EventData[] = response.events?.map((event: any) => {
+        // Backend returns RFC3339 datetime, extract date part only
+        const dateStr = event.date || event.eventDate;
+        const dateOnly = dateStr ? extractDateFromBackend(dateStr) : "";
+        
+        return {
+          id: event.id,
+          title: event.title,
+          description: event.description || "",
+          date: dateOnly,
+          time: event.time || event.eventTime || "",
+          location: event.location || "",
+          images: []
+        };
+      }) || [];
+      
+      setEvents(eventsData);
+      console.log('[Dashboard] Events loaded successfully:', eventsData.length);
+    } catch (error) {
+      console.error('[Dashboard] Error loading events:', error);
+      setEvents([]);
+    }
+  };
+
   // Load events and photos in a separate effect
   useEffect(() => {
-    // Load events
-    const storedEvents = localStorage.getItem("eralove-events");
-    if (storedEvents) {
-      try {
-        setEvents(JSON.parse(storedEvents));
-      } catch (error) {
-        console.error("Error parsing events:", error);
-      }
-    } else {
-      // Set sample events for demo purposes
-      const sampleEvents: EventData[] = [
-        {
-          id: "event-1",
-          title: "First Date",
-          description: "Our first dinner date at the Italian restaurant",
-          date: "2023-05-15",
-          time: "19:00",
-          location: "Luigi's Restaurant",
-          images: []
-        },
-        {
-          id: "event-2",
-          title: "Beach Day",
-          description: "Spent the day at the beach watching sunset",
-          date: "2023-06-20",
-          time: "15:00",
-          location: "Sunset Beach",
-          images: []
-        }
-      ];
-      
-      setEvents(sampleEvents);
-      localStorage.setItem("eralove-events", JSON.stringify(sampleEvents));
-    }
+    loadEvents();
     
     // Load photos from API
     const loadPhotos = async () => {
       try {
-        // Clear localStorage cache to force fresh data
-        localStorage.removeItem('eralove-photos');
-        
-        // Check if token exists
         const token = localStorage.getItem('eralove-token');
-        console.log('Token exists:', !!token);
-        console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null');
-        
         if (!token) {
-          console.warn('No authentication token found. User needs to login via API to access photos.');
-          console.info('Photos will be empty until user logs in with backend authentication.');
+          console.warn('[Dashboard] No token found for photos');
           return;
         }
         
-        console.log('[Dashboard] Calling photoService.getPhotos with token...');
+        console.log('[Dashboard] Loading photos from API...');
         
         const response = await photoService.getPhotos(1, 100);
-        console.log('[Dashboard] Photos from API:', response);
-        console.log('[Dashboard] Number of photos:', response.photos?.length);
-        
-        // Get API base URL (already includes /api/v1)
         const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
-        console.log('[Dashboard] API Base URL:', apiBaseUrl);
         
-        // Convert API response to PhotoData format
         const photosData: PhotoData[] = response.photos?.map((photo: any) => {
-          // Backend returns path like "photos/userid_timestamp.jpg"
-          // API client converts image_url → imageUrl automatically
-          // We need to build: http://localhost:8080/api/v1/files/photos/userid_timestamp.jpg
-          
-          console.log('Raw photo from API:', photo);
-          console.log('photo.imageUrl (camelCase):', photo.imageUrl);
-          console.log('apiBaseUrl:', apiBaseUrl);
-          
-          // Use photo.imageUrl (camelCase) because api-client converts it
-          const imageUrl = photo.imageUrl ? `${apiBaseUrl}/files/${photo.imageUrl}` : "";
-          
-          console.log('[Dashboard] Built full imageUrl:', imageUrl);
-          console.log('[Dashboard] Expected format: http://localhost:8080/api/v1/files/photos/...');
+          const dateOnly = photo.date ? extractDateFromBackend(photo.date) : extractDateFromBackend(new Date().toISOString());
           
           return {
             id: photo.id,
             title: photo.title,
             description: photo.description || "",
-            date: photo.date ? new Date(photo.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            imageUrl: imageUrl,
+            date: dateOnly,
+            imageUrl: photo.imageUrl ? `${apiBaseUrl}/files/${photo.imageUrl}` : "",
             location: photo.location,
             coordinates: photo.coordinates
           };
         }) || [];
         
-        console.log('Processed photos:', photosData);
-        
-        // Debug: Test first image URL
-        if (photosData.length > 0) {
-          console.log('Testing first image URL:', photosData[0].imageUrl);
-          fetch(photosData[0].imageUrl)
-            .then(res => {
-              console.log('Image fetch response:', res.status, res.statusText);
-              if (!res.ok) {
-                console.error('Failed to fetch image:', res.status);
-              }
-            })
-            .catch(err => console.error('Image fetch error:', err));
-        }
-        
         setPhotos(photosData);
+        console.log('[Dashboard] Photos loaded successfully:', photosData.length);
+        console.log('[Dashboard] Photo dates:', photosData.map(p => p.date));
       } catch (error) {
-        console.error("Error loading photos from API:", error);
-        // Don't fallback to localStorage - always use fresh data from API
+        console.error('[Dashboard] Error loading photos:', error);
         setPhotos([]);
       }
     };
     
     loadPhotos();
       
-    // Check if user has an active match
-    const storedUser = localStorage.getItem("eralove-user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.email) {
-        const activeMatch = getActiveMatch(parsedUser.email);
-        setHasActiveMatch(!!activeMatch);
-        
-        // If there's an active match, get partner details
-        if (activeMatch) {
-          const partner = getPartnerDetails(parsedUser.email);
-          if (partner) {
-            setPartnerDetails({
-              name: partner.name,
-              email: partner.email,
-              anniversaryDate: partner.anniversaryDate,
-              dateOfBirth: "" // Default empty string for partner's dateOfBirth
-            });
-          }
-        }
+    // Check match status directly from user data
+    if (user) {
+      console.log('[Dashboard] Checking match status from user data...');
+      console.log('[Dashboard] User partnerId:', user.partnerId);
+      console.log('[Dashboard] User partnerName:', user.partnerName);
+      console.log('[Dashboard] User anniversaryDate:', user.anniversaryDate);
+      
+      // User is matched if they have a partnerId
+      const isMatched = !!user.partnerId;
+      setHasActiveMatch(isMatched);
+      
+      if (isMatched) {
+        console.log('[Dashboard] User is matched');
+        setPartnerDetails({
+          name: user.partnerName || "Partner",
+          email: "", // We don't have partner email in user object, but it's not critical
+          anniversaryDate: user.anniversaryDate || "",
+          dateOfBirth: ""
+        });
+      } else {
+        console.log('[Dashboard] User is not matched');
+        setPartnerDetails(null);
       }
     }
-  }, []);
+  }, [user]);
 
   const handleDateClick = (date: Date) => {
     // Only allow date selection if user has active match
@@ -249,37 +236,81 @@ const Dashboard = () => {
     setIsPhotoModalOpen(true);
   };
 
-  const handleSaveEvent = (eventData: EventData) => {
-    // Check if updating or creating
-    if (selectedEvent) {
-      // Update existing event
-      const updatedEvents = events.map(event => 
-        event.id === eventData.id ? eventData : event
-      );
-      setEvents(updatedEvents);
-      localStorage.setItem("eralove-events", JSON.stringify(updatedEvents));
-    } else {
-      // Add new event
-      const newEvents = [...events, eventData];
-      setEvents(newEvents);
-      localStorage.setItem("eralove-events", JSON.stringify(newEvents));
+  const handleSaveEvent = async (eventData: EventData) => {
+    try {
+      if (selectedEvent) {
+        // Update existing event
+        console.log('[Dashboard] Updating event:', eventData);
+        
+        // Convert to RFC3339 format for backend
+        const dateTime = formatDateTimeForBackend(eventData.date, eventData.time);
+        
+        await eventService.updateEvent(eventData.id, {
+          title: eventData.title,
+          description: eventData.description,
+          date: dateTime,
+          time: eventData.time,
+          location: eventData.location,
+        });
+        
+        // Reload events from API
+        await loadEvents();
+      } else {
+        // Create new event
+        console.log('[Dashboard] Creating event:', eventData);
+        
+        // Convert to RFC3339 format for backend
+        const dateTime = formatDateTimeForBackend(eventData.date, eventData.time);
+        
+        const requestPayload = {
+          title: eventData.title,
+          description: eventData.description,
+          date: dateTime,
+          time: eventData.time,
+          location: eventData.location,
+          event_type: 'other',
+        };
+        
+        console.log('[Dashboard] Request payload:', JSON.stringify(requestPayload, null, 2));
+        
+        await eventService.createEvent(requestPayload);
+        
+        // Reload events from API
+        await loadEvents();
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error saving event:', error);
     }
   };
-  
-  const handleSavePhoto = (photoData: PhotoData) => {
-    // Check if updating or creating
-    if (selectedPhoto) {
-      // Update existing photo
-      const updatedPhotos = photos.map(photo => 
-        photo.id === photoData.id ? photoData : photo
-      );
-      setPhotos(updatedPhotos);
-      localStorage.setItem("eralove-photos", JSON.stringify(updatedPhotos));
-    } else {
-      // Add new photo
-      const newPhotos = [...photos, photoData];
-      setPhotos(newPhotos);
-      localStorage.setItem("eralove-photos", JSON.stringify(newPhotos));
+
+  const handleSavePhoto = async (photoData: PhotoData) => {
+    // Photo saving is handled in PhotoModal via API
+    // Just reload photos from API
+    try {
+      console.log('[Dashboard] Reloading photos after save...');
+      
+      const response = await photoService.getPhotos(1, 100);
+      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+      
+      const photosData: PhotoData[] = response.photos?.map((photo: any) => {
+        const dateOnly = photo.date ? extractDateFromBackend(photo.date) : extractDateFromBackend(new Date().toISOString());
+        
+        return {
+          id: photo.id,
+          title: photo.title,
+          description: photo.description || "",
+          date: dateOnly,
+          imageUrl: photo.imageUrl ? `${apiBaseUrl}/files/${photo.imageUrl}` : "",
+          location: photo.location,
+          coordinates: photo.coordinates
+        };
+      }) || [];
+      
+      setPhotos(photosData);
+      console.log('[Dashboard] Photos reloaded:', photosData.length);
+      console.log('[Dashboard] Photo dates:', photosData.map(p => p.date));
+    } catch (error) {
+      console.error('[Dashboard] Error reloading photos:', error);
     }
   };
   
@@ -300,12 +331,26 @@ const Dashboard = () => {
       return [];
     }
     
-    const allDates = new Set();
-    events.forEach(event => allDates.add(event.date));
-    photos.forEach(photo => allDates.add(photo.date));
+    const allDates = new Set<string>();
+    
+    events.forEach(event => {
+      if (event.date) {
+        allDates.add(event.date);
+      }
+    });
+    
+    photos.forEach(photo => {
+      if (photo.date) {
+        allDates.add(photo.date);
+      }
+    });
+    
+    console.log('[Dashboard] Days with content:', Array.from(allDates));
+    console.log('[Dashboard] Events count:', events.length);
+    console.log('[Dashboard] Photos count:', photos.length);
     
     return Array.from(allDates).map(date => ({
-      date: date as string,
+      date: date,
       title: ""
     }));
   };
@@ -346,28 +391,86 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {hasActiveMatch 
-              ? t('welcome') 
-              : "Please send match request to start your love journey"}
-          </h1>
-          <div className="flex items-center gap-2 mt-2">
-            <MatchNotification 
-              userEmail={userData.email} 
-              userName={userData.name}
-              hasMatch={hasActiveMatch}
-            />
-            {/* Add Messages button here when user has active match */}
-            {hasActiveMatch && partnerDetails && (
-              <MessagesSection
-                userEmail={userData.email}
-                userName={userData.name}
-                partnerEmail={partnerDetails.email}
-                partnerName={partnerDetails.name}
-              />
-            )}
-          </div>
+        <div className="flex-1">
+          {hasActiveMatch ? (
+            <div className="flex flex-col gap-3">
+              <h1 className="text-2xl font-semibold">{t('welcome')}</h1>
+              {/* Display both users with avatars */}
+              <div className="flex items-center gap-4">
+                {/* Current User */}
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    {getAvatarUrl(user?.avatar) ? (
+                      <img 
+                        src={getAvatarUrl(user?.avatar)} 
+                        alt={user?.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-love-300"
+                        onError={(e) => {
+                          // Fallback to initial if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-12 h-12 rounded-full bg-love-100 flex items-center justify-center border-2 border-love-300 ${getAvatarUrl(user?.avatar) ? 'hidden' : ''}`}>
+                      <span className="text-love-600 font-semibold text-lg">
+                        {getUserInitial(user?.name)}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-medium text-gray-700">{user?.name}</span>
+                </div>
+                
+                {/* Heart Icon */}
+                <div className="flex items-center">
+                  <Heart className="w-6 h-6 text-love-500 fill-love-500 animate-pulse" />
+                </div>
+                
+                {/* Partner */}
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    {/* Partner avatar - we don't have it in partnerDetails, so show initial */}
+                    <div className="w-12 h-12 rounded-full bg-couple-100 flex items-center justify-center border-2 border-couple-300">
+                      <span className="text-couple-600 font-semibold text-lg">
+                        {partnerDetails?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-medium text-gray-700">{partnerDetails?.name}</span>
+                </div>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex items-center gap-2">
+                <MatchNotification 
+                  userEmail={userData.email} 
+                  userName={userData.name}
+                  hasMatch={hasActiveMatch}
+                />
+                {partnerDetails && (
+                  <MessagesSection
+                    userEmail={userData.email}
+                    userName={userData.name}
+                    partnerEmail={partnerDetails.email}
+                    partnerName={partnerDetails.name}
+                  />
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h1 className="text-2xl font-semibold">
+                Please send match request to start your love journey
+              </h1>
+              <div className="flex items-center gap-2 mt-2">
+                <MatchNotification 
+                  userEmail={userData.email} 
+                  userName={userData.name}
+                  hasMatch={hasActiveMatch}
+                />
+              </div>
+            </div>
+          )}
         </div>
         <SettingsMenu 
           userEmail={userData.email}
@@ -377,32 +480,7 @@ const Dashboard = () => {
         />
       </div>
       
-      {/* Debug: Show all photos */}
-      {photos.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>All Photos ({photos.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-4 gap-4">
-              {photos.map((photo) => (
-                <div key={photo.id} className="relative">
-                  <AuthenticatedImage
-                    src={photo.imageUrl}
-                    alt={photo.title}
-                    className="w-full h-32 object-cover rounded-lg"
-                    onError={(error) => {
-                      console.error('Image failed to load:', photo.imageUrl, error);
-                    }}
-                  />
-                  <p className="text-xs mt-1 truncate">{photo.title}</p>
-                  <p className="text-xs text-gray-500">{photo.date}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+     
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* First Row */}
@@ -425,6 +503,7 @@ const Dashboard = () => {
                 onDateClick={handleDateClick} 
                 events={getDaysWithContent()}
                 selectedDate={selectedDate}
+                photos={photos}
               />
               
               {/* Love Ideas Section */}

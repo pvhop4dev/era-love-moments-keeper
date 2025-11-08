@@ -1,7 +1,7 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Calendar, Heart } from "lucide-react";
+import { Heart, Cake, Calendar, Gift } from "lucide-react";
+import { extractDateFromBackend, formatDateObjectForBackend } from "@/utils/datetimeUtils";
 
 interface CalendarSuggestionsProps {
   selectedDate: Date;
@@ -16,7 +16,7 @@ const CalendarSuggestions = ({
   partnerDateOfBirth, 
   anniversaryDate 
 }: CalendarSuggestionsProps) => {
-  const selectedDateStr = selectedDate.toISOString().split("T")[0];
+  const selectedDateStr = extractDateFromBackend(formatDateObjectForBackend(selectedDate));
   const selectedMonth = selectedDate.getMonth() + 1;
   const selectedDay = selectedDate.getDate();
 

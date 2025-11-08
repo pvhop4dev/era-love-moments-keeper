@@ -22,16 +22,21 @@ class UploadService {
    * Upload a single file
    */
   async uploadFile(file: File, folder: string = 'photos'): Promise<UploadFileResponse> {
+    console.log('[UploadService] uploadFile called:', { fileName: file.name, fileSize: file.size, folder });
+    
     const formData = new FormData();
     formData.append('file', file);
     formData.append('folder', folder);
 
+    console.log('[UploadService] Sending upload request to /upload...');
     const response = await apiClient.post<UploadFileResponse>('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
 
+    console.log('[UploadService] Upload response:', response.data);
+    console.log('[UploadService] File URL:', response.data.url);
     return response.data;
   }
 

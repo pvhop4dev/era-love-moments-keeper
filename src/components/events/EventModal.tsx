@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Calendar, Clock, Trash, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { extractDateFromBackend, formatDateObjectForBackend } from "@/utils/datetimeUtils";
 
 interface EventModalProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ const EventModal = ({ isOpen, onClose, selectedDate, onSave, event }: EventModal
     if (selectedDate) {
       setEventData((prev) => ({
         ...prev,
-        date: selectedDate.toISOString().split("T")[0],
+        date: extractDateFromBackend(formatDateObjectForBackend(selectedDate)),
       }));
     }
     

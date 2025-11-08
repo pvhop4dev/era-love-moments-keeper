@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { extractDateFromBackend, formatDateObjectForBackend } from "@/utils/datetimeUtils";
 import { Upload, MapPin, Loader2 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -155,8 +156,8 @@ const PhotoModal = ({ isOpen, onClose, selectedDate, onSave, photo }: PhotoModal
     
     try {
       const formattedDate = selectedDate 
-        ? selectedDate.toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+        ? extractDateFromBackend(formatDateObjectForBackend(selectedDate))
+        : extractDateFromBackend(formatDateObjectForBackend(new Date()));
 
       // Step 1: Get presigned upload URL from backend
       const presignedResponse = await photoService.getPresignedUploadUrl(selectedFile.name);

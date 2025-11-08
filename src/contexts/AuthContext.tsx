@@ -56,8 +56,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const updateUser = (userData: UserResponse) => {
+    console.log('[AuthContext] updateUser called with:', userData);
+    console.log('[AuthContext] User avatar:', userData.avatar);
     localStorage.setItem('eralove-user', JSON.stringify(userData));
     setUser(userData);
+    console.log('[AuthContext] User state updated');
   };
 
   const value: AuthContextType = {

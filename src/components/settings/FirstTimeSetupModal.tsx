@@ -39,13 +39,18 @@ const FirstTimeSetupModal = ({ isOpen, onClose }: FirstTimeSetupModalProps) => {
 
     if (!user) return;
 
+    console.log('[FirstTimeSetupModal] Saving avatar:', selectedAvatar);
     setIsLoading(true);
     
     try {
       // Update user profile with avatar
+      console.log('[FirstTimeSetupModal] Calling updateProfile with avatar:', selectedAvatar);
       const updatedUser = await userService.updateProfile({
         avatar: selectedAvatar,
       });
+      
+      console.log('[FirstTimeSetupModal] Updated user received:', updatedUser);
+      console.log('[FirstTimeSetupModal] Updated user avatar:', updatedUser.avatar);
       
       // Update auth context
       updateUser(updatedUser);
@@ -53,7 +58,7 @@ const FirstTimeSetupModal = ({ isOpen, onClose }: FirstTimeSetupModalProps) => {
       toast.success("Avatar set successfully! Welcome to Eralove! 💕");
       onClose();
     } catch (error) {
-      console.error("Error setting avatar:", error);
+      console.error("[FirstTimeSetupModal] Error setting avatar:", error);
       toast.error("Failed to set avatar. Please try again.");
     } finally {
       setIsLoading(false);

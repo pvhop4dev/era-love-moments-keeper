@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Settings, Languages, Palette, Unlink, Globe, User, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { getActiveMatch } from "@/utils/matchUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SettingsMenuProps {
   userEmail?: string;
@@ -40,13 +40,8 @@ interface SettingsMenuProps {
 
 const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonalInfo }: SettingsMenuProps) => {
   const { language, setLanguage } = useLanguage();
-  const [hasActiveMatch, setHasActiveMatch] = useState(() => {
-    if (userEmail) {
-      const activeMatch = getActiveMatch(userEmail);
-      return !!activeMatch;
-    }
-    return false;
-  });
+  const { user } = useAuth();
+  const hasActiveMatch = !!user?.partnerId;
   const [confirmText, setConfirmText] = useState("");
   const [isUnpairDialogOpen, setIsUnpairDialogOpen] = useState(false);
 
@@ -119,7 +114,6 @@ const SettingsMenu = ({ userEmail, onUnpair, onOpenThemeSettings, onOpenPersonal
         }
         
         toast.success("You have been unpaired successfully");
-        setHasActiveMatch(false);
         setIsUnpairDialogOpen(false);
         setConfirmText("");
         if (onUnpair) {

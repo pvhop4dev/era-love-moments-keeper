@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { Wallpaper, Languages, Upload, Unlink, Check } from "lucide-react";
-import { getActiveMatch } from "@/utils/matchUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -22,13 +22,14 @@ interface Settings {
 }
 
 const SettingsModal = ({ isOpen, onClose, userEmail, onUnpair }: SettingsModalProps) => {
+  const { user } = useAuth();
   const [settings, setSettings] = useState<Settings>({
     backgroundImage: "",
     language: "en",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [hasActiveMatch, setHasActiveMatch] = useState(false);
+  const hasActiveMatch = !!user?.partnerId;
   const [selectedBackgroundType, setSelectedBackgroundType] = useState<"default" | "custom" | "upload">("default");
   const [selectedDefaultBg, setSelectedDefaultBg] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -100,13 +101,7 @@ const SettingsModal = ({ isOpen, onClose, userEmail, onUnpair }: SettingsModalPr
         console.error("Error parsing settings:", error);
       }
     }
-
-    // Check if user has an active match
-    if (userEmail) {
-      const activeMatch = getActiveMatch(userEmail);
-      setHasActiveMatch(!!activeMatch);
-    }
-  }, [userEmail]);
+  }, []);
 
   useEffect(() => {
     // Clean up object URLs on unmount

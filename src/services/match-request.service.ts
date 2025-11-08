@@ -21,20 +21,20 @@ export interface MatchRequestResponse {
 
 export interface CreateMatchRequestRequest {
   receiverEmail: string;
-  anniversaryDate?: string;
+  anniversaryDate: string;  // Required when sending
   message?: string;
 }
 
 export interface RespondToMatchRequestRequest {
-  status: 'accepted' | 'rejected';
-  anniversaryDate?: string;
+  action: 'accept' | 'reject';
+  anniversaryDate?: string;  // Optional - can override when accepting
 }
 
 export interface MatchRequestListResponse {
-  data: MatchRequestResponse[];
+  matchRequests: MatchRequestResponse[];  // Changed from match_requests to matchRequests (camelCase)
   total: number;
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
   message?: string;
 }
 
@@ -73,7 +73,7 @@ class MatchRequestService {
         limit,
       },
     });
-    
+    console.log("getReceivedRequests: ",response.data);
     return response.data;
   }
 
@@ -114,10 +114,9 @@ class MatchRequestService {
   /**
    * Accept a match request
    */
-  async acceptMatchRequest(requestId: string, anniversaryDate?: string): Promise<MatchRequestResponse> {
+  async acceptMatchRequest(requestId: string): Promise<MatchRequestResponse> {
     return this.respondToMatchRequest(requestId, {
-      status: 'accepted',
-      anniversaryDate,
+      action: 'accept',
     });
   }
 
@@ -126,7 +125,7 @@ class MatchRequestService {
    */
   async rejectMatchRequest(requestId: string): Promise<MatchRequestResponse> {
     return this.respondToMatchRequest(requestId, {
-      status: 'rejected',
+      action: 'reject',
     });
   }
 }
